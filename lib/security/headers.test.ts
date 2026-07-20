@@ -2,11 +2,16 @@ import { describe, it, expect } from "vitest";
 import { buildCspHeader, securityHeaders } from "./headers";
 
 describe("security headers", () => {
-  it("builds a CSP that locks defaults to self and blocks framing", () => {
-    const csp = buildCspHeader("test-nonce");
+  it("builds a production CSP that locks defaults to self and blocks framing", () => {
+    const csp = buildCspHeader();
     expect(csp).toContain("default-src 'self'");
     expect(csp).toContain("frame-ancestors 'none'");
-    expect(csp).toContain("'nonce-test-nonce'");
+    expect(csp).not.toContain("unsafe-eval");
+  });
+
+  it("includes unsafe-eval in dev CSP for React/Turbopack error overlay", () => {
+    const csp = buildCspHeader(true);
+    expect(csp).toContain("'unsafe-eval'");
   });
 
   it("exposes the standard hardening headers", () => {
