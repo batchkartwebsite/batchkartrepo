@@ -4,7 +4,7 @@
 
 **Goal:** Stand up a deployable, tested Next.js 16 app with the "Growth Emerald" design system, BatchKart logo, marketing nav/footer, Supabase client wiring, validated env, security headers, dark mode, and CI — the foundation every later phase builds on.
 
-**Architecture:** Next.js 16 App Router + TypeScript with a feature-based `src/` layout. Tailwind CSS v4 (CSS-first tokens) drives the design system via CSS variables + shadcn/ui primitives. Pure logic (env parsing, security headers) lives in small, unit-tested modules; UI is component-tested with Vitest + React Testing Library; a Playwright smoke test covers the rendered shell. Supabase is wired via `@supabase/ssr` but not yet used for data.
+**Architecture:** Next.js 16 App Router + TypeScript with a feature-based, **root-level** layout (no `src/` directory — `app/`, `components/`, `lib/`, `config/` live at the project root; the `@/*` alias maps to `./*`). Tailwind CSS v4 (CSS-first tokens) drives the design system via CSS variables + shadcn/ui primitives. Pure logic (env parsing, security headers) lives in small, unit-tested modules; UI is component-tested with Vitest + React Testing Library; a Playwright smoke test covers the rendered shell. Supabase is wired via `@supabase/ssr` but not yet used for data.
 
 **Tech Stack:** Next.js 16, TypeScript, Tailwind CSS v4, shadcn/ui, Framer Motion, next-themes, Zod, @supabase/ssr, Vitest, React Testing Library, Playwright, GitHub Actions.
 
@@ -15,30 +15,29 @@
 ## File Structure (created in this phase)
 
 ```
-BatchKart/
-├─ src/
-│  ├─ app/
-│  │  ├─ layout.tsx              # root layout: Inter font, ThemeProvider, header/footer
-│  │  ├─ page.tsx                # home shell (design-system showcase)
-│  │  └─ globals.css             # Tailwind v4 import + Growth Emerald tokens (light/dark)
-│  ├─ components/
-│  │  ├─ ui/                     # shadcn primitives (button, …)
-│  │  ├─ brand/logo.tsx          # Grad Cap logo + wordmark
-│  │  ├─ layout/site-header.tsx  # marketing navbar
-│  │  ├─ layout/site-footer.tsx  # marketing footer
-│  │  └─ theme/
-│  │     ├─ theme-provider.tsx   # next-themes provider
-│  │     └─ theme-toggle.tsx     # light/dark toggle
-│  ├─ config/
-│  │  ├─ env.ts                  # Zod-validated environment
-│  │  └─ site.ts                 # nav/footer links, site metadata
-│  ├─ lib/
-│  │  ├─ utils.ts                # cn() (shadcn)
-│  │  ├─ security/headers.ts     # CSP + security header builders
-│  │  └─ supabase/
-│  │     ├─ client.ts            # browser client
-│  │     └─ server.ts            # server client
-│  └─ middleware.ts              # applies security headers
+BatchKart/                        # root-level App Router (NO src/ directory)
+├─ app/
+│  ├─ layout.tsx                 # root layout: Inter font, ThemeProvider, header/footer
+│  ├─ page.tsx                   # home shell (design-system showcase)
+│  └─ globals.css                # Tailwind v4 import + Growth Emerald tokens (light/dark)
+├─ components/
+│  ├─ ui/                        # shadcn primitives (button, …)
+│  ├─ brand/logo.tsx             # Grad Cap logo + wordmark
+│  ├─ layout/site-header.tsx     # marketing navbar
+│  ├─ layout/site-footer.tsx     # marketing footer
+│  └─ theme/
+│     ├─ theme-provider.tsx      # next-themes provider
+│     └─ theme-toggle.tsx        # light/dark toggle
+├─ config/
+│  ├─ env.ts                     # Zod-validated environment
+│  └─ site.ts                    # nav/footer links, site metadata
+├─ lib/
+│  ├─ utils.ts                   # cn() (shadcn)
+│  ├─ security/headers.ts        # CSP + security header builders
+│  └─ supabase/
+│     ├─ client.ts               # browser client
+│     └─ server.ts               # server client
+├─ middleware.ts                 # applies security headers (project root)
 ├─ tests/e2e/home.spec.ts        # Playwright smoke test
 ├─ .github/workflows/ci.yml      # lint + typecheck + test + build
 ├─ vitest.config.ts
@@ -58,14 +57,16 @@ BatchKart/
 
 - [ ] **Step 1: Create the app in the current (non-empty) directory**
 
-The project root already contains `doc.txt` and `docs/`. Scaffold into it:
+The project root already contains `doc.txt` and `docs/`. Scaffold into it with **no `src/` directory** (root-level `app/`):
 
 Run:
 ```powershell
-npx create-next-app@latest . --ts --tailwind --app --src-dir --eslint --import-alias "@/*" --use-npm --no-turbopack
+npx create-next-app@latest . --ts --tailwind --app --no-src-dir --eslint --import-alias "@/*" --use-npm --no-turbopack --yes
 ```
-When prompted "directory is not empty / proceed?", answer **Yes**. Accept defaults for any remaining prompts.
-Expected: `create-next-app` completes, `package.json`, `src/app/`, `next.config.ts`, and `tsconfig.json` now exist.
+Notes for this environment:
+- `create-next-app` rejects a capitalized folder name (`BatchKart`) as an npm package name. If it errors, scaffold into a temp subdir (e.g. `batchkart-temp` with `--use-npm`), move all files up to the project root, then set `"name": "batchkart"` in `package.json`.
+- Preserve `doc.txt`, `docs/`, and `.superpowers/`. If prompted about a non-empty directory, proceed (they are non-conflicting).
+Expected: `create-next-app` completes; `package.json`, root-level `app/`, `next.config.ts`, and `tsconfig.json` exist; `tsconfig.json` maps `"@/*": ["./*"]`.
 
 - [ ] **Step 2: Verify the dev server boots**
 
@@ -136,7 +137,7 @@ git commit -m "chore: add core, ui, and testing dependencies"
 
 **Files:**
 - Create: `vitest.config.ts`, `vitest.setup.ts`
-- Create: `src/lib/smoke.test.ts`
+- Create: `lib/smoke.test.ts`
 - Modify: `package.json` (scripts)
 
 - [ ] **Step 1: Write the Vitest config**
@@ -153,7 +154,7 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
-    include: ["src/**/*.test.{ts,tsx}"],
+    include: ["{app,components,config,lib}/**/*.test.{ts,tsx}"],
   },
 });
 ```
@@ -175,7 +176,7 @@ In `package.json`, add to `"scripts"`:
 
 - [ ] **Step 3: Write a failing smoke test**
 
-Create `src/lib/smoke.test.ts`:
+Create `lib/smoke.test.ts`:
 ```ts
 import { describe, it, expect } from "vitest";
 import { sum } from "./smoke";
@@ -197,7 +198,7 @@ Expected: FAIL — cannot find module `./smoke` (or `sum` is not exported).
 
 - [ ] **Step 5: Create the module to make it pass**
 
-Create `src/lib/smoke.ts`:
+Create `lib/smoke.ts`:
 ```ts
 export function sum(a: number, b: number): number {
   return a + b;
@@ -216,7 +217,7 @@ Expected: PASS — 1 passed.
 
 Run:
 ```powershell
-git add vitest.config.ts vitest.setup.ts src/lib/smoke.ts src/lib/smoke.test.ts package.json
+git add vitest.config.ts vitest.setup.ts lib/smoke.ts lib/smoke.test.ts package.json
 git commit -m "test: configure Vitest with React Testing Library"
 ```
 
@@ -225,18 +226,18 @@ git commit -m "test: configure Vitest with React Testing Library"
 ## Task 4: Growth Emerald design tokens (Tailwind v4, light + dark)
 
 **Files:**
-- Modify: `src/app/globals.css`
-- Test: `src/app/tokens.test.ts`
+- Modify: `app/globals.css`
+- Test: `app/tokens.test.ts`
 
 - [ ] **Step 1: Write a failing test asserting tokens are declared**
 
-Create `src/app/tokens.test.ts`:
+Create `app/tokens.test.ts`:
 ```ts
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-const css = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
+const css = readFileSync(join(process.cwd(), "app/globals.css"), "utf8");
 
 describe("design tokens", () => {
   it("declares the emerald primary in light mode", () => {
@@ -256,13 +257,13 @@ describe("design tokens", () => {
 
 Run:
 ```powershell
-npm test src/app/tokens.test.ts
+npm test app/tokens.test.ts
 ```
 Expected: FAIL — the default scaffold `globals.css` has no `#059669`.
 
 - [ ] **Step 3: Replace globals.css with the Growth Emerald token set**
 
-Replace the entire contents of `src/app/globals.css`:
+Replace the entire contents of `app/globals.css`:
 ```css
 @import "tailwindcss";
 
@@ -364,7 +365,7 @@ body {
 
 Run:
 ```powershell
-npm test src/app/tokens.test.ts
+npm test app/tokens.test.ts
 ```
 Expected: PASS — 3 passed.
 
@@ -380,7 +381,7 @@ Expected: "Compiled successfully".
 
 Run:
 ```powershell
-git add src/app/globals.css src/app/tokens.test.ts
+git add app/globals.css app/tokens.test.ts
 git commit -m "feat: add Growth Emerald design tokens with dark mode"
 ```
 
@@ -389,8 +390,8 @@ git commit -m "feat: add Growth Emerald design tokens with dark mode"
 ## Task 5: Initialize shadcn/ui and add the Button primitive
 
 **Files:**
-- Create: `components.json`, `src/lib/utils.ts`, `src/components/ui/button.tsx`
-- Test: `src/components/ui/button.test.tsx`
+- Create: `components.json`, `lib/utils.ts`, `components/ui/button.tsx`
+- Test: `components/ui/button.test.tsx`
 
 - [ ] **Step 1: Initialize shadcn (non-destructive to our tokens)**
 
@@ -398,7 +399,7 @@ Run:
 ```powershell
 npx shadcn@latest init -d
 ```
-Accept defaults. This creates `components.json` and `src/lib/utils.ts` (exporting `cn`). If it prompts to overwrite `globals.css`, choose **No** — our tokens stay.
+Accept defaults. This creates `components.json` and `lib/utils.ts` (exporting `cn`). If it prompts to overwrite `globals.css`, choose **No** — our tokens stay.
 
 - [ ] **Step 2: Add the Button component**
 
@@ -406,11 +407,11 @@ Run:
 ```powershell
 npx shadcn@latest add button
 ```
-Expected: `src/components/ui/button.tsx` created.
+Expected: `components/ui/button.tsx` created.
 
 - [ ] **Step 3: Write a failing test for the Button**
 
-Create `src/components/ui/button.test.tsx`:
+Create `components/ui/button.test.tsx`:
 ```tsx
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -435,7 +436,7 @@ The generated Button already uses `bg-primary` for its default variant, so this 
 
 Run:
 ```powershell
-npm test src/components/ui/button.test.tsx
+npm test components/ui/button.test.tsx
 ```
 Expected: PASS — 2 passed. (If the default variant class differs, update the assertion to the actual primary class emitted by the generated component, then re-run.)
 
@@ -443,7 +444,7 @@ Expected: PASS — 2 passed. (If the default variant class differs, update the a
 
 Run:
 ```powershell
-git add components.json src/lib/utils.ts src/components/ui/button.tsx src/components/ui/button.test.tsx
+git add components.json lib/utils.ts components/ui/button.tsx components/ui/button.test.tsx
 git commit -m "feat: add shadcn/ui and emerald Button primitive"
 ```
 
@@ -452,12 +453,12 @@ git commit -m "feat: add shadcn/ui and emerald Button primitive"
 ## Task 6: BatchKart logo component (Grad Cap)
 
 **Files:**
-- Create: `src/components/brand/logo.tsx`
-- Test: `src/components/brand/logo.test.tsx`
+- Create: `components/brand/logo.tsx`
+- Test: `components/brand/logo.test.tsx`
 
 - [ ] **Step 1: Write a failing test**
 
-Create `src/components/brand/logo.test.tsx`:
+Create `components/brand/logo.test.tsx`:
 ```tsx
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -480,13 +481,13 @@ describe("Logo", () => {
 
 Run:
 ```powershell
-npm test src/components/brand/logo.test.tsx
+npm test components/brand/logo.test.tsx
 ```
 Expected: FAIL — cannot find module `./logo`.
 
 - [ ] **Step 3: Implement the Logo**
 
-Create `src/components/brand/logo.tsx`:
+Create `components/brand/logo.tsx`:
 ```tsx
 import { cn } from "@/lib/utils";
 
@@ -530,7 +531,7 @@ export function Logo({
 
 Run:
 ```powershell
-npm test src/components/brand/logo.test.tsx
+npm test components/brand/logo.test.tsx
 ```
 Expected: PASS — 2 passed.
 
@@ -538,7 +539,7 @@ Expected: PASS — 2 passed.
 
 Run:
 ```powershell
-git add src/components/brand/logo.tsx src/components/brand/logo.test.tsx
+git add components/brand/logo.tsx components/brand/logo.test.tsx
 git commit -m "feat: add Grad Cap logo component"
 ```
 
@@ -547,12 +548,12 @@ git commit -m "feat: add Grad Cap logo component"
 ## Task 7: Site config (nav + footer links)
 
 **Files:**
-- Create: `src/config/site.ts`
-- Test: `src/config/site.test.ts`
+- Create: `config/site.ts`
+- Test: `config/site.test.ts`
 
 - [ ] **Step 1: Write a failing test**
 
-Create `src/config/site.test.ts`:
+Create `config/site.test.ts`:
 ```ts
 import { describe, it, expect } from "vitest";
 import { siteConfig } from "./site";
@@ -579,13 +580,13 @@ describe("siteConfig", () => {
 
 Run:
 ```powershell
-npm test src/config/site.test.ts
+npm test config/site.test.ts
 ```
 Expected: FAIL — cannot find module `./site`.
 
 - [ ] **Step 3: Implement the site config**
 
-Create `src/config/site.ts`:
+Create `config/site.ts`:
 ```ts
 export type NavLink = { label: string; href: string };
 
@@ -621,7 +622,7 @@ export const siteConfig = {
 
 Run:
 ```powershell
-npm test src/config/site.test.ts
+npm test config/site.test.ts
 ```
 Expected: PASS — 3 passed.
 
@@ -629,7 +630,7 @@ Expected: PASS — 3 passed.
 
 Run:
 ```powershell
-git add src/config/site.ts src/config/site.test.ts
+git add config/site.ts config/site.test.ts
 git commit -m "feat: add site config for nav and footer"
 ```
 
@@ -638,12 +639,12 @@ git commit -m "feat: add site config for nav and footer"
 ## Task 8: Theme provider + dark-mode toggle
 
 **Files:**
-- Create: `src/components/theme/theme-provider.tsx`, `src/components/theme/theme-toggle.tsx`
-- Test: `src/components/theme/theme-toggle.test.tsx`
+- Create: `components/theme/theme-provider.tsx`, `components/theme/theme-toggle.tsx`
+- Test: `components/theme/theme-toggle.test.tsx`
 
 - [ ] **Step 1: Create the theme provider**
 
-Create `src/components/theme/theme-provider.tsx`:
+Create `components/theme/theme-provider.tsx`:
 ```tsx
 "use client";
 
@@ -657,7 +658,7 @@ export function ThemeProvider(props: ComponentProps<typeof NextThemesProvider>) 
 
 - [ ] **Step 2: Write a failing test for the toggle**
 
-Create `src/components/theme/theme-toggle.test.tsx`:
+Create `components/theme/theme-toggle.test.tsx`:
 ```tsx
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -680,13 +681,13 @@ describe("ThemeToggle", () => {
 
 Run:
 ```powershell
-npm test src/components/theme/theme-toggle.test.tsx
+npm test components/theme/theme-toggle.test.tsx
 ```
 Expected: FAIL — cannot find module `./theme-toggle`.
 
 - [ ] **Step 4: Implement the toggle**
 
-Create `src/components/theme/theme-toggle.tsx`:
+Create `components/theme/theme-toggle.tsx`:
 ```tsx
 "use client";
 
@@ -714,7 +715,7 @@ export function ThemeToggle() {
 
 Run:
 ```powershell
-npm test src/components/theme/theme-toggle.test.tsx
+npm test components/theme/theme-toggle.test.tsx
 ```
 Expected: PASS — 1 passed.
 
@@ -722,7 +723,7 @@ Expected: PASS — 1 passed.
 
 Run:
 ```powershell
-git add src/components/theme
+git add components/theme
 git commit -m "feat: add theme provider and dark-mode toggle"
 ```
 
@@ -731,12 +732,12 @@ git commit -m "feat: add theme provider and dark-mode toggle"
 ## Task 9: Marketing header and footer
 
 **Files:**
-- Create: `src/components/layout/site-header.tsx`, `src/components/layout/site-footer.tsx`
-- Test: `src/components/layout/site-header.test.tsx`, `src/components/layout/site-footer.test.tsx`
+- Create: `components/layout/site-header.tsx`, `components/layout/site-footer.tsx`
+- Test: `components/layout/site-header.test.tsx`, `components/layout/site-footer.test.tsx`
 
 - [ ] **Step 1: Write failing tests**
 
-Create `src/components/layout/site-header.test.tsx`:
+Create `components/layout/site-header.test.tsx`:
 ```tsx
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -757,7 +758,7 @@ describe("SiteHeader", () => {
 });
 ```
 
-Create `src/components/layout/site-footer.test.tsx`:
+Create `components/layout/site-footer.test.tsx`:
 ```tsx
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -777,13 +778,13 @@ describe("SiteFooter", () => {
 
 Run:
 ```powershell
-npm test src/components/layout
+npm test components/layout
 ```
 Expected: FAIL — cannot find modules `./site-header`, `./site-footer`.
 
 - [ ] **Step 3: Implement the header**
 
-Create `src/components/layout/site-header.tsx`:
+Create `components/layout/site-header.tsx`:
 ```tsx
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
@@ -825,7 +826,7 @@ export function SiteHeader() {
 
 - [ ] **Step 4: Implement the footer**
 
-Create `src/components/layout/site-footer.tsx`:
+Create `components/layout/site-footer.tsx`:
 ```tsx
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
@@ -881,7 +882,7 @@ export function SiteFooter() {
 
 Run:
 ```powershell
-npm test src/components/layout
+npm test components/layout
 ```
 Expected: PASS — 2 passed.
 
@@ -889,7 +890,7 @@ Expected: PASS — 2 passed.
 
 Run:
 ```powershell
-git add src/components/layout
+git add components/layout
 git commit -m "feat: add marketing header and footer"
 ```
 
@@ -898,11 +899,11 @@ git commit -m "feat: add marketing header and footer"
 ## Task 10: Root layout with Inter font, theme provider, header/footer
 
 **Files:**
-- Modify: `src/app/layout.tsx`
+- Modify: `app/layout.tsx`
 
 - [ ] **Step 1: Replace the root layout**
 
-Replace the entire contents of `src/app/layout.tsx`:
+Replace the entire contents of `app/layout.tsx`:
 ```tsx
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
@@ -952,7 +953,7 @@ Expected: "Compiled successfully".
 
 Run:
 ```powershell
-git add src/app/layout.tsx
+git add app/layout.tsx
 git commit -m "feat: wire root layout with Inter, theming, header and footer"
 ```
 
@@ -961,11 +962,11 @@ git commit -m "feat: wire root layout with Inter, theming, header and footer"
 ## Task 11: Home shell page (design-system showcase)
 
 **Files:**
-- Modify: `src/app/page.tsx`
+- Modify: `app/page.tsx`
 
 - [ ] **Step 1: Replace the home page**
 
-Replace the entire contents of `src/app/page.tsx`:
+Replace the entire contents of `app/page.tsx`:
 ```tsx
 import { Button } from "@/components/ui/button";
 
@@ -1008,7 +1009,7 @@ Open http://localhost:3000. Confirm: emerald hero, "BatchKart" wordmark (single 
 
 Run:
 ```powershell
-git add src/app/page.tsx
+git add app/page.tsx
 git commit -m "feat: add home shell with design-system hero"
 ```
 
@@ -1017,12 +1018,12 @@ git commit -m "feat: add home shell with design-system hero"
 ## Task 12: Environment validation with Zod
 
 **Files:**
-- Create: `src/config/env.ts`, `.env.example`, `.env.local`
-- Test: `src/config/env.test.ts`
+- Create: `config/env.ts`, `.env.example`, `.env.local`
+- Test: `config/env.test.ts`
 
 - [ ] **Step 1: Write a failing test**
 
-Create `src/config/env.test.ts`:
+Create `config/env.test.ts`:
 ```ts
 import { describe, it, expect } from "vitest";
 import { parseEnv } from "./env";
@@ -1048,13 +1049,13 @@ describe("parseEnv", () => {
 
 Run:
 ```powershell
-npm test src/config/env.test.ts
+npm test config/env.test.ts
 ```
 Expected: FAIL — cannot find module `./env`.
 
 - [ ] **Step 3: Implement env parsing**
 
-Create `src/config/env.ts`:
+Create `config/env.ts`:
 ```ts
 import { z } from "zod";
 
@@ -1097,7 +1098,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder-anon-key
 
 Run:
 ```powershell
-npm test src/config/env.test.ts
+npm test config/env.test.ts
 ```
 Expected: PASS — 2 passed.
 
@@ -1105,7 +1106,7 @@ Expected: PASS — 2 passed.
 
 Run:
 ```powershell
-git add src/config/env.ts src/config/env.test.ts .env.example
+git add config/env.ts config/env.test.ts .env.example
 git commit -m "feat: add Zod-validated environment config"
 ```
 
@@ -1114,11 +1115,11 @@ git commit -m "feat: add Zod-validated environment config"
 ## Task 13: Supabase client factories
 
 **Files:**
-- Create: `src/lib/supabase/client.ts`, `src/lib/supabase/server.ts`
+- Create: `lib/supabase/client.ts`, `lib/supabase/server.ts`
 
 - [ ] **Step 1: Create the browser client**
 
-Create `src/lib/supabase/client.ts`:
+Create `lib/supabase/client.ts`:
 ```ts
 import { createBrowserClient } from "@supabase/ssr";
 import { env } from "@/config/env";
@@ -1133,7 +1134,7 @@ export function createClient() {
 
 - [ ] **Step 2: Create the server client**
 
-Create `src/lib/supabase/server.ts`:
+Create `lib/supabase/server.ts`:
 ```ts
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
@@ -1173,7 +1174,7 @@ Expected: both exit 0, "Compiled successfully".
 
 Run:
 ```powershell
-git add src/lib/supabase
+git add lib/supabase
 git commit -m "feat: add Supabase browser and server client factories"
 ```
 
@@ -1182,12 +1183,12 @@ git commit -m "feat: add Supabase browser and server client factories"
 ## Task 14: Security headers + CSP in middleware
 
 **Files:**
-- Create: `src/lib/security/headers.ts`, `src/middleware.ts`
-- Test: `src/lib/security/headers.test.ts`
+- Create: `lib/security/headers.ts`, `middleware.ts`
+- Test: `lib/security/headers.test.ts`
 
 - [ ] **Step 1: Write a failing test for the header builders**
 
-Create `src/lib/security/headers.test.ts`:
+Create `lib/security/headers.test.ts`:
 ```ts
 import { describe, it, expect } from "vitest";
 import { buildCspHeader, securityHeaders } from "./headers";
@@ -1212,13 +1213,13 @@ describe("security headers", () => {
 
 Run:
 ```powershell
-npm test src/lib/security/headers.test.ts
+npm test lib/security/headers.test.ts
 ```
 Expected: FAIL — cannot find module `./headers`.
 
 - [ ] **Step 3: Implement the header builders**
 
-Create `src/lib/security/headers.ts`:
+Create `lib/security/headers.ts`:
 ```ts
 export const securityHeaders: Record<string, string> = {
   "X-Content-Type-Options": "nosniff",
@@ -1248,13 +1249,13 @@ export function buildCspHeader(nonce: string): string {
 
 Run:
 ```powershell
-npm test src/lib/security/headers.test.ts
+npm test lib/security/headers.test.ts
 ```
 Expected: PASS — 2 passed.
 
 - [ ] **Step 5: Create the middleware**
 
-Create `src/middleware.ts`:
+Create `middleware.ts`:
 ```ts
 import { NextResponse, type NextRequest } from "next/server";
 import { buildCspHeader, securityHeaders } from "@/lib/security/headers";
@@ -1300,7 +1301,7 @@ Expected: the CSP string prints (containing `default-src 'self'`) and `DENY` pri
 
 Run:
 ```powershell
-git add src/lib/security/headers.ts src/lib/security/headers.test.ts src/middleware.ts
+git add lib/security/headers.ts lib/security/headers.test.ts middleware.ts
 git commit -m "feat: add CSP and security headers via middleware"
 ```
 
