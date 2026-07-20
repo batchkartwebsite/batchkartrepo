@@ -1,0 +1,862 @@
+Design and build BatchKart (batchkart.com).
+
+BatchKart is India's batch discovery platform where students can discover coaching batches, compare prices, receive discounts, request recommendations, and connect with coaching institutes.
+
+The product should feel like a modern startup (similar quality to Airbnb, Stripe Dashboard, Notion, Linear, and Framer).
+
+The design must be clean, minimal, premium, extremely fast, and SEO optimized.
+
+Goal
+
+Create India's largest coaching batch marketplace.
+
+Students should be able to
+
+Discover coaching batches
+Compare coaching institutes
+Get exclusive discounts
+Request personalized batch recommendations
+Post their requirements
+Receive suggestions from coaching institutes
+
+The platform should support
+
+JEE
+NEET
+UPSC
+SSC
+Banking
+Railway (RRB)
+BPSC
+CAT
+GATE
+CUET
+CLAT
+NDA
+State PSC
+and future categories.
+Technology Stack
+
+Frontend
+
+Next.js 16 (App Router)
+TypeScript
+Tailwind CSS
+shadcn/ui
+Framer Motion
+React Hook Form
+Zod
+
+Backend
+
+Supabase
+PostgreSQL
+Row Level Security
+Storage
+Edge Functions (only where necessary)
+
+Authentication
+
+Email + Password
+Google OAuth
+Forgot Password
+Email Verification
+
+Hosting
+
+Vercel
+
+Database
+
+Supabase PostgreSQL
+
+Repository
+
+GitHub
+
+Analytics
+
+Vercel Analytics
+Google Analytics
+Google Search Console
+
+SEO
+
+Dynamic Metadata
+JSON-LD
+Sitemap
+Robots
+Canonical URLs
+OpenGraph
+Twitter Cards
+Design Philosophy
+
+The UI should feel like
+
+Stripe
+Airbnb
+Framer
+Notion
+Linear
+Apple
+
+Characteristics
+
+Premium
+Modern
+Spacious
+Rounded corners
+Excellent typography
+Soft shadows
+Great animations
+Responsive
+Accessibility first
+
+Dark mode support.
+
+Primary Users
+Student
+
+Can
+
+Browse batches
+Search coaching
+Filter
+Create profile
+Post requirements
+Edit requirements
+Save batches
+Contact coaching
+Receive discounts
+Admin
+
+Accessible only at
+
+/admin/login-portal
+
+Authentication
+
+Email
+
+Password
+
+8-digit Security PIN
+
+Admin can
+
+View everything
+Edit everything
+Delete everything
+Moderate users
+Moderate coaching
+Moderate student requirements
+View analytics
+View reports
+Manage categories
+Manage SEO
+Manage homepage
+Manage testimonials
+Manage blogs
+Manage cities
+Manage discounts
+
+No public registration for admin.
+
+Student Authentication
+
+Support
+
+Email + Password
+Google Login
+Forgot Password
+Reset Password
+Email Verification
+
+Secure authentication using Supabase Auth.
+
+Student Onboarding Flow
+
+Immediately after first login, show a multi-step onboarding wizard.
+
+Step 1
+
+Academic Preferences
+
+Language
+
+Examples
+
+English
+Hindi
+Hinglish
+Regional
+
+Study Mode
+
+Offline
+Online
+Hybrid
+
+Preferred Coaching
+
+(Optional)
+
+Preferred City
+
+Target Exam
+
+Examples
+
+JEE
+NEET
+UPSC
+SSC
+
+Target Year
+
+Examples
+
+2027
+
+2028
+
+2029
+
+Start Date of Study
+
+Optional
+
+Save & Continue
+
+Step 2
+
+Budget
+
+How much can you pay?
+
+Slider
+
+Minimum
+
+Maximum
+
+Preferred Fee Type
+
+One Time
+EMI
+Step 3
+
+Contact
+
+Name
+
+Phone Number
+
+WhatsApp Number
+
+Email
+
+Preferred Contact Time
+
+Step 4
+
+Reason for Discount
+
+Allow students to explain why they deserve additional discounts.
+
+Examples
+
+Financial difficulties
+Academic achievement
+State rank
+Olympiad winner
+Scholarship holder
+Defence family
+Single parent
+Other valid reason
+
+Optional document upload
+
+Step 5
+
+Review
+
+Preview everything
+
+Submit
+
+The onboarding form should always remain editable.
+
+Student Profile
+
+Profile contains
+
+Personal Information
+
+Academic Preferences
+
+Budget
+
+Saved Batches
+
+Applied Batches
+
+Requirement Posts
+
+Discount Requests
+
+Documents
+
+Settings
+
+Requirement posts
+
+Student can
+
+Edit
+
+Pause
+
+Delete
+
+Archive
+
+Duplicate
+
+Automatic Archive Logic
+
+Each requirement contains
+
+Study Start Date
+
+When current date becomes greater than study start date
+
+Automatically
+
+Status becomes
+
+Archived
+
+Archived posts remain visible only in profile.
+
+Students may restore them manually if allowed.
+
+Batch Discovery
+
+Powerful search
+
+Search by
+
+Institute
+
+Teacher
+
+Exam
+
+Course
+
+City
+
+State
+
+Online
+
+Offline
+
+Language
+
+Budget
+
+Ratings
+
+Discount
+
+Filters
+
+Price
+
+Exam
+
+City
+
+Online
+
+Offline
+
+Language
+
+Duration
+
+Batch Start Date
+
+Scholarship Available
+
+Discount Available
+
+Verified Institute
+
+Coaching Page
+
+Every coaching has
+
+Logo
+
+Images
+
+Description
+
+Branches
+
+Faculty
+
+Reviews
+
+Courses
+
+Discounts
+
+Available Batches
+
+Fees
+
+Contact
+
+Location
+
+FAQ
+
+Batch Page
+
+Contains
+
+Batch name
+
+Coaching
+
+Teacher
+
+Exam
+
+Duration
+
+Fee
+
+Discount
+
+Batch Start Date
+
+Seats Left
+
+Mode
+
+Language
+
+Description
+
+Curriculum
+
+CTA
+
+Request Discount
+
+Contact Coaching
+
+Student Requirement Marketplace
+
+Students can post requirements.
+
+Example
+
+"I am preparing for JEE 2028 in Patna with a budget of ₹40,000."
+
+These posts are visible to
+
+Admin
+
+Later
+
+Verified coaching institutes
+
+Students can edit/delete/archive posts anytime.
+
+Homepage
+
+Hero Section
+
+Powerful search
+
+Featured Categories
+
+Top Coaching
+
+Trending Batches
+
+Latest Discounts
+
+How BatchKart Works
+
+Student Success Stories
+
+FAQ
+
+Blog
+
+Newsletter
+
+Footer
+
+Blog
+
+SEO optimized
+
+Categories
+
+Exam Tips
+
+Preparation
+
+Scholarships
+
+Admission
+
+Career
+
+Coaching Reviews
+
+Dynamic pages
+
+SEO
+
+Must be world-class.
+
+Implement
+
+Server Rendering
+
+Metadata API
+
+Dynamic metadata
+
+OpenGraph
+
+Twitter Cards
+
+JSON-LD
+
+Breadcrumb schema
+
+Organization schema
+
+FAQ schema
+
+Course schema
+
+Article schema
+
+Review schema
+
+Canonical URLs
+
+Robots.txt
+
+Sitemap
+
+RSS Feed
+
+Image optimization
+
+Lazy loading
+
+Infinite caching where possible
+
+Excellent Core Web Vitals
+
+Security
+
+Follow enterprise security standards.
+
+Implement
+
+Supabase Row Level Security
+
+Strict authorization
+
+Server-side validation
+
+Zod validation
+
+Rate limiting
+
+CSRF protection where applicable
+
+Security headers
+
+Content Security Policy
+
+SQL injection prevention
+
+XSS prevention
+
+Input sanitization
+
+Audit logging
+
+Secure cookies
+
+Session rotation
+
+Environment variable validation
+
+Image upload validation
+
+File type validation
+
+File size validation
+
+Admin route protection
+
+Server Actions authentication
+
+No client-side secrets
+
+Least privilege access
+
+Performance
+
+Use
+
+React Server Components
+
+Streaming
+
+Suspense
+
+Server Actions
+
+Image optimization
+
+Route prefetching
+
+Caching
+
+Edge Middleware only where appropriate
+
+Code splitting
+
+Lazy loading
+
+Excellent Lighthouse score
+
+Target
+
+Performance 95+
+
+SEO 100
+
+Accessibility 100
+
+Best Practices 100
+
+Database Design
+
+Design normalized PostgreSQL schema for
+
+Users
+
+Profiles
+
+Student Preferences
+
+Requirement Posts
+
+Exam Categories
+
+Cities
+
+States
+
+Coaching Institutes
+
+Batches
+
+Discount Requests
+
+Blogs
+
+Reviews
+
+Saved Batches
+
+Notifications
+
+Admin Users
+
+Audit Logs
+
+Settings
+
+Media
+
+Admin Dashboard
+
+Dashboard
+
+Users
+
+Students
+
+Requirement Posts
+
+Coaching
+
+Batches
+
+Blogs
+
+Discount Requests
+
+Reports
+
+Cities
+
+Categories
+
+SEO
+
+Media Library
+
+Analytics
+
+Settings
+
+Audit Logs
+
+Search everywhere
+
+Bulk actions
+
+Filters
+
+Pagination
+
+Export CSV
+
+Notifications
+
+Email notifications
+
+Welcome email
+
+Password reset
+
+Requirement submitted
+
+Requirement updated
+
+Discount approved
+
+Batch recommendation
+
+Admin notifications
+
+Future Ready Features
+
+Architecture should support future additions such as:
+
+Verified coaching institute accounts
+AI-powered batch recommendations
+AI chatbot
+Scholarship engine
+Referral program
+Student badges
+Rewards
+Push notifications
+Mobile app (React Native)
+Payments
+Premium subscriptions
+CRM
+WhatsApp automation
+AI search
+Voice search
+
+The database and API should be designed so these features can be added without major refactoring.
+
+Folder Structure
+
+Create a scalable enterprise-grade project structure with clear separation of concerns, including modules for app, components, features, lib, server, hooks, types, styles, emails, supabase, middleware, config, schemas, utils, constants, public, and tests. Feature-based organization is preferred over large generic folders.
+
+Development Agents
+
+Split the project into specialized AI agents so development can proceed in parallel.
+
+Agent 1 — Product Architect
+Product requirements
+Information architecture
+User journeys
+Feature prioritization
+PRD
+Database ERD
+Agent 2 — UI/UX Designer
+Design system
+Color palette
+Typography
+Responsive layouts
+Components
+Animations
+Accessibility
+Dark mode
+Agent 3 — Frontend Engineer
+Next.js App Router
+UI implementation
+Forms
+Search
+Filters
+Dashboard
+Performance optimization
+Agent 4 — Backend & Database Engineer
+Supabase schema
+RLS policies
+Storage
+Auth
+APIs
+Server Actions
+Migrations
+Audit logs
+Agent 5 — Security & DevOps Engineer
+Authentication hardening
+Authorization
+CSP
+Rate limiting
+Security headers
+Vercel deployment
+GitHub Actions
+Secrets management
+Monitoring
+Backups
+Agent 6 — SEO & Growth Engineer
+Metadata
+Structured data
+Sitemap
+Robots
+Canonicals
+OpenGraph
+Blog architecture
+Internal linking
+Core Web Vitals
+Agent 7 — QA & Performance Engineer
+Unit tests
+Integration tests
+End-to-end tests
+Accessibility audits
+Lighthouse optimization
+Error handling
+Monitoring
+Load testing
+Agent 8 — Documentation & Release Manager
+Technical documentation
+API documentation
+Setup guide
+Environment configuration
+Deployment checklist
+Release notes
+Maintenance plan
