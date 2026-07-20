@@ -43,3 +43,8 @@ next-env.d.ts
 
 # Superpowers brainstorm mockups
 .superpowers/
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
