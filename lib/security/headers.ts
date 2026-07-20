@@ -7,10 +7,16 @@ export const securityHeaders: Record<string, string> = {
   "Permissions-Policy": "camera=(), microphone=(), geolocation=(self)",
 };
 
-export function buildCspHeader(nonce: string): string {
+// Static CSP: nonce-based strict-dynamic doesn't work with static/ISR pages because
+// the nonce baked into HTML at build time can't match the per-request header nonce.
+// Dev mode allows 'unsafe-eval' which React/Turbopack requires for error overlay.
+export function buildCspHeader(isDev = false): string {
+  const scriptSrc = isDev
+    ? `script-src 'self' 'unsafe-eval' https:`
+    : `script-src 'self' https:`;
   return [
     `default-src 'self'`,
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https:`,
+    scriptSrc,
     `style-src 'self' 'unsafe-inline'`,
     `img-src 'self' data: blob: https:`,
     `font-src 'self' data:`,

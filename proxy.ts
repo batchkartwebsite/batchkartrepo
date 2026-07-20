@@ -1,16 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { buildCspHeader, securityHeaders } from "@/lib/security/headers";
 
-export function middleware(request: NextRequest) {
-  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+const isDev = process.env.NODE_ENV === "development";
 
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-nonce", nonce);
-  requestHeaders.set("Content-Security-Policy", buildCspHeader(nonce));
-
-  const response = NextResponse.next({ request: { headers: requestHeaders } });
-
-  response.headers.set("Content-Security-Policy", buildCspHeader(nonce));
+export function proxy(request: NextRequest) {
+  const response = NextResponse.next();
+  response.headers.set("Content-Security-Policy", buildCspHeader(isDev));
   for (const [key, value] of Object.entries(securityHeaders)) {
     response.headers.set(key, value);
   }
