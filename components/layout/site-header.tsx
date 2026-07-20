@@ -20,14 +20,14 @@ export function SiteHeader() {
         </nav>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Button variant="outline" asChild className="hidden sm:inline-flex">
-            <Link href="/requirements/new">Post a Requirement</Link>
+          <Button variant="outline" nativeButton={false} render={<Link href="/requirements/new" />} className="hidden sm:inline-flex">
+            Post a Requirement
           </Button>
-          <Button variant="ghost" asChild className="hidden sm:inline-flex">
-            <Link href="/login">Sign in</Link>
+          <Button variant="ghost" nativeButton={false} render={<Link href="/login" />} className="hidden sm:inline-flex">
+            Sign in
           </Button>
-          <Button asChild>
-            <Link href="/signup">Sign up</Link>
+          <Button nativeButton={false} render={<Link href="/signup" />}>
+            Sign up
           </Button>
         </div>
       </div>
