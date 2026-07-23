@@ -41,12 +41,41 @@
 | 14 | pg_cron nightly archive | 📝 authored | |
 | 15 | Storage buckets + RLS | 📝 authored | |
 | 16 | pgTAP schema tests | 📝 authored | run deferred to CI |
-| 17 | pgTAP trigger tests | 📝 authored | run deferred to CI |
-| 18 | pgTAP RLS tests | 📝 authored | run deferred to CI |
-| 19 | Curated seed data | 📝 authored | |
-| 20 | TS types + typed clients | see notes | types **hand-authored** pending `db:types` (Docker); clients typed; vitest type-test ✅ |
+| 17 | pgTAP trigger tests | ✅ fixed + partially verified | **Fixed a latent bug** in assertion 2 (see log); `search_vector` + `set_updated_at` logic smoke-tested live via MCP. Full run still on CI |
+| 18 | pgTAP RLS tests | 📝 authored | RLS-enabled-everywhere verified live; behavioral run deferred to CI |
+| 19 | Curated seed data | ✅ verified | **Fixed a bug** in `cities` VALUES (see log); applied to hosted, counts match (states 10, cities 12, exams 13, blog_cats 6, settings 3, testimonials 3) |
+| 20 | TS types + typed clients | ✅ verified | Applied schema to hosted `xmdugrozuftbtonkqtnn`; `database.types.ts` generated (54 KB); clients typed `<Database>`; type-test + `npm run typecheck` + `npm test` (21) all green |
 | 21 | CI workflow (db.yml) | 📝 authored | this is what verifies 2–19 on push |
-| 22 | Full reset/test gate | ⏳ deferred | needs Docker or CI run |
+| 22 | Full reset/test gate | ✅ verified via hosted MCP | Schema integrity confirmed live: 30 public tables, 0 with RLS disabled, 20 enums, 9 helper/trigger fns. Local Docker `db reset`/`db test` still deferred to CI |
+
+## Verification path (decided 2026-07-23): hosted Supabase MCP
+
+Docker is not used. Instead we apply + verify against the **hosted** BatchKart
+project (`ref = xmdugrozuftbtonkqtnn`, owned by a different Google account than the
+CLI login). `.env.local` already points at this ref.
+
+- MCP registered in `.mcp.json` (HTTP transport, OAuth — no token stored):
+  `https://mcp.supabase.com/mcp?project_ref=xmdugrozuftbtonkqtnn`
+- ✅ **Done (2026-07-23):** MCP authenticated + tools loaded. Full schema applied to
+  hosted as 3 migrations (`phase_1a_schema_indexes_rls`, `phase_1a_cron_archive`,
+  `phase_1a_storage` — combined from the 14 local files, identical SQL). Seed applied.
+  Types generated, clients typed, vitest + typecheck green.
+
+## Security advisor triage (hosted, 2026-07-23)
+
+`get_advisors(security)` returned only **WARN** (no ERROR). Triage:
+
+- **Intentional design (accept):** `newsletter_public_insert` WITH CHECK (true) is a
+  public subscribe endpoint; public `avatars`/`media` buckets allow listing (public assets).
+- **Must NOT "fix" (would break RLS):** the SECURITY DEFINER helpers (`is_admin`,
+  `is_active_member_of`, `can_manage_branch`) are called by anon-facing RLS policies, so
+  they must keep EXECUTE for anon/authenticated. The RPC-exposure lint is expected here.
+- **Deferred hardening (cheap, non-blocking, for a follow-up migration):**
+  pin `search_path` on the 4 non-SD functions (`set_updated_at`,
+  `batches_search_vector_update`, `recompute_coaching_rating`,
+  `archive_expired_requirements`); optionally move `citext`/`pg_trgm`/`unaccent` out of
+  `public` into an `extensions` schema. `current_profile_role` / `handle_new_user` are the
+  only helpers not used by a policy and could have EXECUTE revoked from anon later.
 
 ## Deferred-to-CI checklist (run these when Docker/CI is available)
 
@@ -59,3 +88,19 @@
 
 - 2026-07-23: `supabase init` scaffolded `config.toml` + `.gitignore`. Confirmed
   migrations/seed/tests are NOT gitignored. Began authoring migrations.
+- 2026-07-23: Applied full schema + seed to hosted `xmdugrozuftbtonkqtnn` via MCP;
+  generated `lib/supabase/database.types.ts`; typed both Supabase clients with
+  `<Database>`; added `database.types.test.ts`. `npm run typecheck` clean,
+  `npm test` = 11 files / 21 tests pass.
+- 2026-07-23: **Seed bug fixed.** `supabase/seed.sql` `cities` CTE declared 4 column
+  aliases `(state_name, name, slug, state_slug)` but each VALUES row supplied only 3
+  → `ERROR 42P10: table "c" has 3 columns available but 4 columns specified`. This would
+  also fail the CI `supabase db reset`. Added the missing display `name` to each of the
+  12 rows. Re-applied to hosted; counts correct.
+- 2026-07-23: **pgTAP trigger test bug fixed.** `tests/01_triggers.test.sql` assertion 2
+  asserted `updated_at > created_at` after an in-transaction UPDATE. `now()` is constant
+  for a whole transaction (and pgTAP wraps each file in one `begin;…rollback;`), so
+  `updated_at == created_at` → the assertion would FAIL in CI. Verified live: the
+  `set_updated_at` trigger is correct (updated_at = now() in a *separate* txn). Rewrote the
+  assertion to write a stale `updated_at` and assert the trigger overrides it — robust
+  within a single transaction. Confirmed live (`trigger_overrode_stale = true`).
