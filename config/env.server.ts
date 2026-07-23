@@ -16,7 +16,23 @@ export function parseServerEnv(source: Record<string, string | undefined>): Serv
   return parsed.data;
 }
 
-export const serverEnv = parseServerEnv({
-  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
-  ADMIN_SESSION_SECRET: process.env.ADMIN_SESSION_SECRET,
+let cachedServerEnv: ServerEnv | null = null;
+
+function loadServerEnv(): ServerEnv {
+  if (!cachedServerEnv) {
+    cachedServerEnv = parseServerEnv({
+      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+      ADMIN_SESSION_SECRET: process.env.ADMIN_SESSION_SECRET,
+    });
+  }
+  return cachedServerEnv;
+}
+
+// Lazy proxy: validation runs on first property access (at runtime), not at import.
+// This keeps `next build` from requiring these runtime secrets to be present at
+// build time, while consumers still use `serverEnv.X` unchanged.
+export const serverEnv: ServerEnv = new Proxy({} as ServerEnv, {
+  get(_target, prop) {
+    return loadServerEnv()[prop as keyof ServerEnv];
+  },
 });
