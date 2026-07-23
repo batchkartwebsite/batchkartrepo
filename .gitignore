@@ -44,6 +44,11 @@ next-env.d.ts
 # Superpowers brainstorm mockups
 .superpowers/
 
+# Local agent / skills tooling (per-machine, not shared)
+.agents/
+.mcp.json
+skills-lock.json
+
 # Playwright
 /test-results/
 /playwright-report/
