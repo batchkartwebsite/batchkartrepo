@@ -11,13 +11,18 @@ select is(
   'handle_new_user auto-creates profile from metadata'
 );
 
--- 2) updated_at is touched on UPDATE.
-update public.profiles set phone = '99999'
+-- 2) updated_at is refreshed by the trigger on UPDATE.
+-- now() is constant for the whole transaction, so updated_at == created_at here and
+-- a `> created_at` comparison can't detect the trigger. Instead we write a deliberately
+-- stale updated_at and assert set_updated_at() overrode it with the transaction time.
+update public.profiles
+  set phone = '99999',
+      updated_at = timestamptz '2000-01-01 00:00:00+00'
   where id = '00000000-0000-0000-0000-000000000001';
 select ok(
-  (select updated_at > created_at from public.profiles
+  (select updated_at > timestamptz '2020-01-01 00:00:00+00' from public.profiles
    where id = '00000000-0000-0000-0000-000000000001'),
-  'set_updated_at advances updated_at on update'
+  'set_updated_at overrides a stale updated_at with the current timestamp'
 );
 
 -- 3) Approved review recomputes coaching rating.

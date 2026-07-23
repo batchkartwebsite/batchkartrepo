@@ -16,18 +16,18 @@ on conflict (slug) do nothing;
 insert into public.cities (state_id, name, slug, is_popular)
 select s.id, c.name, c.slug, true
 from (values
-  ('Delhi','new-delhi','delhi'),
-  ('Maharashtra','mumbai','maharashtra'),
-  ('Maharashtra','pune','maharashtra'),
-  ('Rajasthan','kota','rajasthan'),
-  ('Rajasthan','jaipur','rajasthan'),
-  ('Uttar Pradesh','prayagraj','uttar-pradesh'),
-  ('Uttar Pradesh','lucknow','uttar-pradesh'),
-  ('Bihar','patna','bihar'),
-  ('Karnataka','bengaluru','karnataka'),
-  ('Telangana','hyderabad','telangana'),
-  ('Tamil Nadu','chennai','tamil-nadu'),
-  ('West Bengal','kolkata','west-bengal')
+  ('Delhi','New Delhi','new-delhi','delhi'),
+  ('Maharashtra','Mumbai','mumbai','maharashtra'),
+  ('Maharashtra','Pune','pune','maharashtra'),
+  ('Rajasthan','Kota','kota','rajasthan'),
+  ('Rajasthan','Jaipur','jaipur','rajasthan'),
+  ('Uttar Pradesh','Prayagraj','prayagraj','uttar-pradesh'),
+  ('Uttar Pradesh','Lucknow','lucknow','uttar-pradesh'),
+  ('Bihar','Patna','patna','bihar'),
+  ('Karnataka','Bengaluru','bengaluru','karnataka'),
+  ('Telangana','Hyderabad','hyderabad','telangana'),
+  ('Tamil Nadu','Chennai','chennai','tamil-nadu'),
+  ('West Bengal','Kolkata','kolkata','west-bengal')
 ) as c(state_name, name, slug, state_slug)
 join public.states s on s.slug = c.state_slug
 on conflict (slug) do nothing;
