@@ -10,6 +10,11 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), tsconfigPaths()],
+    resolve: {
+      // "react-server" condition maps `server-only` → empty.js (no-op) instead of the
+      // throwing index.js, so server-only modules can be imported safely in vitest.
+      conditions: ["react-server", "module", "browser", "default"],
+    },
     test: {
       environment: "jsdom",
       globals: true,
