@@ -65,6 +65,19 @@ export function FilterBar<T extends TableName>({
                 value={value}
                 onChange={(event) => update(filter.key, event.target.value)}
               />
+            ) : filter.type === "relation" && filter.options && filter.options.length > 0 ? (
+              <select
+                className={CONTROL_CLASS}
+                value={value}
+                onChange={(event) => update(filter.key, event.target.value)}
+              >
+                <option value="">All</option>
+                {filter.options.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             ) : (
               <input
                 type="text"
