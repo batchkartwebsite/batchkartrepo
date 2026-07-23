@@ -1,4 +1,5 @@
 import { defineConfig } from "vitest/config";
+import { fileURLToPath } from "node:url";
 import { loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
@@ -11,15 +12,24 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react(), tsconfigPaths()],
     resolve: {
-      // "react-server" condition maps `server-only` → empty.js (no-op) instead of the
-      // throwing index.js, so server-only modules can be imported safely in vitest.
-      conditions: ["react-server", "module", "browser", "default"],
+      // Map the exact `server-only` import to a no-op stub so server-only modules can be
+      // imported under vitest. Done as a targeted alias (not a global "react-server"
+      // condition) so React still resolves to its client build for component tests.
+      alias: [
+        {
+          find: /^server-only$/,
+          replacement: fileURLToPath(new URL("./test/stubs/empty.ts", import.meta.url)),
+        },
+      ],
     },
     test: {
       environment: "jsdom",
       globals: true,
       setupFiles: ["./vitest.setup.ts"],
-      include: ["{app,components,config,lib}/**/*.test.{ts,tsx}"],
+      include: [
+        "{app,components,config,lib,features,server,scripts}/**/*.test.{ts,tsx}",
+        "*.test.{ts,tsx}",
+      ],
     },
   };
 });
