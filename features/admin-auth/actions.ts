@@ -68,7 +68,7 @@ export async function verifyAdminPin(raw: unknown) {
 
   (await cookies()).set(ADMIN_UNLOCK_COOKIE, signAdminToken(user.id), {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
     path: "/admin",
     maxAge: ADMIN_UNLOCK_TTL_MS / 1000,
