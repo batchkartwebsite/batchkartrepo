@@ -7,7 +7,6 @@ import type { ColumnDef, ListParams, Row } from "@/lib/admin/resource-config";
 import { DataTable } from "@/components/admin/data-table";
 import { FilterBar } from "@/components/admin/filter-bar";
 import { Pagination } from "@/components/admin/pagination";
-import { BulkActionBar } from "@/components/admin/bulk-action-bar";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { EmptyState } from "@/components/admin/empty-state";
 import { CsvExportButton } from "@/components/admin/csv-export-button";
@@ -36,8 +35,7 @@ export function BatchesListView({
   blockedReasons?: Record<string, string>;
 }) {
   const router = useRouter();
-  const [selected, setSelected] = useState<string[]>([]);
-  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<BatchRow | null>(null);
   const [pending, startTransition] = useTransition();
 
   const pageCount = Math.max(1, Math.ceil(total / params.pageSize));
@@ -73,27 +71,35 @@ export function BatchesListView({
         header: "Actions",
         cell: (r) => {
           const reason = blockedReasons[r.id];
-          if (reason) {
-            return (
-              <span className="flex flex-col gap-0.5">
-                <span
-                  className="cursor-not-allowed font-medium text-slate-400"
-                  title={reason}
-                  aria-disabled="true"
-                >
-                  🔒 Locked
-                </span>
-                <span className="text-xs text-amber-600 dark:text-amber-400">{reason}</span>
-              </span>
-            );
-          }
           return (
-            <Link
-              href={`/admin/batches/${r.id}/edit`}
-              className="font-medium text-emerald-600 hover:text-emerald-500 dark:text-emerald-400"
-            >
-              Edit
-            </Link>
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-3">
+                {reason ? (
+                  <span
+                    className="cursor-not-allowed font-medium text-slate-400"
+                    title={reason}
+                    aria-disabled="true"
+                  >
+                    🔒 Locked
+                  </span>
+                ) : (
+                  <Link
+                    href={`/admin/batches/${r.id}/edit`}
+                    className="font-medium text-emerald-600 hover:text-emerald-500 dark:text-emerald-400"
+                  >
+                    Edit
+                  </Link>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setDeleteTarget(r)}
+                  className="font-medium text-rose-600 transition-colors hover:text-rose-500 dark:text-rose-400"
+                >
+                  Delete
+                </button>
+              </div>
+              {reason ? <span className="text-xs text-amber-600 dark:text-amber-400">{reason}</span> : null}
+            </div>
           );
         },
       },
@@ -101,14 +107,12 @@ export function BatchesListView({
     [blockedReasons],
   );
 
-  function runBulkDelete() {
-    const ids = [...selected];
+  function runDelete() {
+    const target = deleteTarget;
+    if (!target) return;
     startTransition(async () => {
-      for (const id of ids) {
-        await deleteBatch(id);
-      }
-      setSelected([]);
-      setConfirmOpen(false);
+      await deleteBatch(target.id);
+      setDeleteTarget(null);
       router.refresh();
     });
   }
@@ -171,13 +175,6 @@ export function BatchesListView({
         />
       </div>
 
-      {/* Bulk actions */}
-      <BulkActionBar
-        count={selected.length}
-        actions={[{ key: "delete", label: "Delete", onRun: () => setConfirmOpen(true) }]}
-        onClear={() => setSelected([])}
-      />
-
       {/* Table / empty state */}
       {rows.length === 0 ? (
         <EmptyState
@@ -194,9 +191,6 @@ export function BatchesListView({
           columns={columns}
           rows={rows}
           getRowId={(r) => r.id}
-          selectable
-          selectedIds={selected}
-          onSelectionChange={setSelected}
           sort={params.sort}
           onSortChange={(s) => pushParams({ sort: s })}
         />
@@ -206,12 +200,18 @@ export function BatchesListView({
       <Pagination page={params.page} pageCount={pageCount} onPageChange={(p) => pushParams({ page: p })} />
 
       <ConfirmDialog
-        open={confirmOpen}
-        title={`Delete ${selected.length} batch${selected.length === 1 ? "" : "es"}?`}
-        description="This action cannot be undone."
+        open={deleteTarget !== null}
+        tone="danger"
+        title="Delete this batch?"
+        description={
+          <>
+            {deleteTarget ? <span className="font-medium text-foreground">{deleteTarget.name}</span> : null} will be
+            permanently removed. This action cannot be undone.
+          </>
+        }
         confirmLabel={pending ? "Deleting…" : "Delete"}
-        onConfirm={runBulkDelete}
-        onCancel={() => setConfirmOpen(false)}
+        onConfirm={runDelete}
+        onCancel={() => setDeleteTarget(null)}
       />
     </div>
   );

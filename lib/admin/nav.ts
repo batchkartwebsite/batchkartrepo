@@ -17,6 +17,7 @@ export const adminNav: NavGroup[] = [
     items: [
       { label: "Enquiries", href: "/admin/enquiries" },
       { label: "Contact", href: "/admin/contact" },
+      { label: "Users", href: "/admin/users" },
     ],
   },
 ];
