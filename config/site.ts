@@ -4,25 +4,27 @@ export const siteConfig = {
   name: "BatchKart",
   url: "https://batchkart.com",
   description:
-    "India's most trusted platform for finding and comparing coaching batches. We connect ambitious students with the best educators.",
+    "India's most trusted way to discover, compare and enquire about coaching batches for NEET, JEE, UPSC and more — verified institutes, honest fees, zero guesswork.",
+  contactEmail: "hello@batchkart.com",
+  // Header nav — all targets resolve (page routes or on-page anchors).
   mainNav: [
-    { label: "Explore Batches", href: "/batches" },
-    { label: "Coaching", href: "/coaching" },
-    { label: "Exams", href: "/exams" },
-    { label: "Discounts", href: "/discounts" },
-    { label: "Blog", href: "/blog" },
+    { label: "Batches", href: "/batches" },
+    { label: "Exams", href: "/#exams" },
+    { label: "How it works", href: "/#how" },
+    { label: "Reviews", href: "/#reviews" },
+    { label: "FAQ", href: "/#faq" },
   ] satisfies NavLink[],
   footer: {
-    quickLinks: [
-      { label: "All Batches", href: "/batches" },
-      { label: "About Us", href: "/about" },
-      { label: "Contact Support", href: "/contact" },
-      { label: "Blog", href: "/blog" },
+    explore: [
+      { label: "Browse batches", href: "/batches" },
+      { label: "Popular exams", href: "/#exams" },
+      { label: "How it works", href: "/#how" },
+      { label: "Reviews", href: "/#reviews" },
     ] satisfies NavLink[],
-    legal: [
-      { label: "Privacy Policy", href: "/privacy" },
-      { label: "Terms of Service", href: "/terms" },
-      { label: "Refund Policy", href: "/refund-policy" },
+    company: [
+      { label: "Why BatchKart", href: "/#why" },
+      { label: "FAQ", href: "/#faq" },
+      { label: "Send an enquiry", href: "/batches#enquiry" },
     ] satisfies NavLink[],
   },
 } as const;

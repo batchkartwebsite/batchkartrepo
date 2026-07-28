@@ -1,3 +1,4 @@
+
 # BatchKart — Design Specification
 
 **Date:** 2026-07-20
@@ -18,14 +19,14 @@ CAT, GATE, CUET, CLAT, NDA, State PSC** — and the taxonomy is extensible for f
 
 ### Locked design decisions
 
-| Area | Decision |
-|---|---|
-| Visual direction | **Growth Emerald** — fresh, value/education-forward |
-| Logo | **Grad Cap** mark in a rounded emerald tile + `BatchKart` wordmark |
-| Reviews | **Coaching-level** only (not per-batch) |
-| Coaching data model | **Multi-tenant, per-city** — schema built now, self-serve UI deferred |
-| Data entry (now) | **Super admin enters all data** via the complete admin dashboard |
-| Coaching self-serve UI | **Deferred** (schema ready, zero future schema change to enable) |
+| Area                   | Decision                                                                     |
+| ---------------------- | ---------------------------------------------------------------------------- |
+| Visual direction       | **Growth Emerald** — fresh, value/education-forward                   |
+| Logo                   | **Grad Cap** mark in a rounded emerald tile + `BatchKart` wordmark   |
+| Reviews                | **Coaching-level** only (not per-batch)                                |
+| Coaching data model    | **Multi-tenant, per-city** — schema built now, self-serve UI deferred |
+| Data entry (now)       | **Super admin enters all data** via the complete admin dashboard       |
+| Coaching self-serve UI | **Deferred** (schema ready, zero future schema change to enable)       |
 
 ---
 
@@ -47,20 +48,25 @@ CAT, GATE, CUET, CLAT, NDA, State PSC** — and the taxonomy is extensible for f
 ### 3.1 Color tokens
 
 **Brand (emerald)**
+
 - `emerald-50` `#ecfdf5` · `emerald-100` `#d1fae5` · `emerald-500` `#10b981`
 - `emerald-600` `#059669` **(primary)** · `emerald-700` `#047857` · `emerald-900` `#052e2b` (deep ink)
 
 **Neutrals (slate)**
+
 - `#f8fafc` · `#f1f5f9` · `#e2e8f0` (border) · `#94a3b8` · `#64748b` (muted) · `#334155` · `#0f172a` (ink)
 
 **Semantic**
+
 - Success `#10b981` · Warning/urgency `#f59e0b` (amber) · Error `#ef4444` / `#b91c1c` · Info `#0891b2`
 - Discount badge = amber; "seats left" urgency = rose `#e11d48` / `#fee2e2` bg.
 
 **Surfaces**
+
 - Page `#ffffff`, subtle `#f8fafc`, mint `#ecfdf5`. Hero gradient: `#f0fdf4 → #ecfdf5 → #f7fee7`.
 
 **Dark mode**
+
 - Base `#0b1220`, surfaces `#0f172a` / `#1e293b`, borders `#1e293b`, emerald accent brightened to `#34d399`.
 
 ### 3.2 Typography
@@ -127,6 +133,7 @@ Centered 1160px container, ~60px gutters. Sections top-to-bottom:
     **Legal** (Privacy Policy, Terms of Service, Refund Policy), © line.
 
 Footer copy (exact):
+
 > **BatchKart** — India's most trusted platform for finding and comparing coaching batches. We
 > connect ambitious students with the best educators.
 
@@ -139,6 +146,7 @@ Footer copy (exact):
 every table**. ~29 tables across six domains.
 
 ### 6.1 Identity & Access
+
 - **profiles** — `id` (→ `auth.users`), `role` enum(`student`,`coaching_admin`,`admin`), full_name,
   email, phone, whatsapp, avatar_url, `city_id`→, onboarding_completed, timestamps. Auto-created via
   trigger on signup. 1:1 with auth.users.
@@ -147,12 +155,14 @@ every table**. ~29 tables across six domains.
 - **notifications** — `id`, `user_id`→, type enum, title, body, data jsonb, read_at, created_at.
 
 ### 6.2 Taxonomy & Location
+
 - **exam_categories** — id, name, slug, icon, `parent_id`→self (sub-exams), description, sort_order,
   is_active, seo jsonb.
 - **states** — id, name, slug, code.
 - **cities** — id, `state_id`→, name, slug, is_popular, latitude, longitude.
 
 ### 6.3 Coaching Catalog
+
 - **coaching_institutes** — id, name, slug, logo_url, cover_url, description, is_verified,
   rating_avg, rating_count (denormalized), contact fields, seo jsonb, **claim_status**
   enum(`unclaimed`,`pending`,`claimed`), **created_by**→ (admin seeder), **moderation_status**.
@@ -169,6 +179,7 @@ every table**. ~29 tables across six domains.
 - **faqs** — id, parent_type(`coaching`|`batch`), `parent_id`→, question, answer, sort_order.
 
 ### 6.4 Student & Marketplace
+
 - **student_preferences** — id, `profile_id`→, language, study_mode enum, `target_exam_id`→,
   target_year, `preferred_city_id`→, preferred_coaching, budget_min, budget_max, fee_type,
   study_start_date, contact_time. *(Onboarding steps 1–3; always editable.)*
@@ -183,6 +194,7 @@ every table**. ~29 tables across six domains.
   validated type/size.
 
 ### 6.5 Engagement & Content
+
 - **reviews** — id, `author_id`→, `coaching_id`→, rating, title, body, status(`pending`,`approved`),
   is_verified. Trigger recomputes `coaching.rating_avg` / `rating_count`.
 - **blog_posts** — id, `author_id`→, `category_id`→, title, slug, excerpt, cover_url, content
@@ -193,6 +205,7 @@ every table**. ~29 tables across six domains.
 - **newsletter_subscribers** — id, email (unique), status(`subscribed`,`unsubscribed`).
 
 ### 6.6 System & Admin
+
 - **audit_logs** — id, `actor_id`→, action, entity_type, entity_id, changes jsonb (before/after),
   ip_address, user_agent, created_at. Every admin write logged.
 - **media** — id, `uploader_id`→, url, type, size, folder, alt_text, width, height.
@@ -201,6 +214,7 @@ every table**. ~29 tables across six domains.
   config, SEO defaults.
 
 ### 6.7 Multi-tenant coaching (schema now, UI deferred)
+
 - **coaching_members** — id, `coaching_id`→, `profile_id`→, member_role enum(`owner`,`manager`,
   `editor`), all_branches bool, status enum(`invited`,`active`,`suspended`), invited_by, created_at.
 - **coaching_member_branches** — id, `member_id`→, `branch_id`→. *(Per-city scope: if
@@ -209,6 +223,7 @@ every table**. ~29 tables across six domains.
   `document_id`→ (proof), status(`pending`,`approved`,`rejected`), reviewed_by, admin_note.
 
 ### 6.8 Indexes, triggers, jobs
+
 - GIN index on `batches.search_vector`; btrees on all FKs, slugs (unique), status/moderation_status,
   exam_id/city_id, start_date; trigram indexes for autocomplete where useful.
 - Triggers: profile auto-create on signup; `updated_at` touch; review→coaching rating recompute;
@@ -216,12 +231,12 @@ every table**. ~29 tables across six domains.
 - **pg_cron** nightly job: flip `requirement_posts.status → archived` when past study_start_date.
 
 ### 6.9 RLS model (one rule, two worlds)
+
 - **anon/public:** read-only, and only `moderation_status = 'published'` catalog rows.
 - **student:** full access to *their own* rows (preferences, requirements, saved, discount requests,
   documents, contacts); read published catalog.
 - **coaching_admin** *(schema-ready, UI later):* read/write a row only when
-  `coaching_id ∈ active memberships` **AND** (`all_branches` **OR** row `branch_id ∈
-  coaching_member_branches`).
+  `coaching_id ∈ active memberships` **AND** (`all_branches` **OR** row `branch_id ∈ coaching_member_branches`).
 - **admin (super admin):** full unscoped CRUD on every table; admin-entered data is **auto-published**
   (bypasses moderation). Same policies whether data is admin-seeded or coaching-entered → enabling
   self-serve later needs **zero schema change**.
@@ -230,14 +245,14 @@ every table**. ~29 tables across six domains.
 
 ## 7. Permissions Model
 
-| Capability | Student | Coaching admin *(deferred UI)* | Super admin |
-|---|---|---|---|
-| Browse/search catalog | ✓ | ✓ | ✓ |
-| Manage own profile/requirements/discounts | ✓ | — | ✓ (all) |
-| Enter/edit coaching, branches, batches, faculty, discounts | — | Own coaching, scoped to assigned cities, **via moderation** | **All, auto-published** |
-| Blog, testimonials, cities, categories, media, SEO, settings | — | — | ✓ |
-| Moderation, reports, audit logs, analytics | — | — | ✓ |
-| Admin access | — | — | `/admin/login-portal` (email + password + 8-digit PIN) |
+| Capability                                                   | Student | Coaching admin*(deferred UI)*                                  | Super admin                                              |
+| ------------------------------------------------------------ | ------- | ---------------------------------------------------------------- | -------------------------------------------------------- |
+| Browse/search catalog                                        | ✓      | ✓                                                               | ✓                                                       |
+| Manage own profile/requirements/discounts                    | ✓      | —                                                               | ✓ (all)                                                 |
+| Enter/edit coaching, branches, batches, faculty, discounts   | —      | Own coaching, scoped to assigned cities,**via moderation** | **All, auto-published**                            |
+| Blog, testimonials, cities, categories, media, SEO, settings | —      | —                                                               | ✓                                                       |
+| Moderation, reports, audit logs, analytics                   | —      | —                                                               | ✓                                                       |
+| Admin access                                                 | —      | —                                                               | `/admin/login-portal` (email + password + 8-digit PIN) |
 
 ---
 
@@ -266,6 +281,7 @@ every table**. ~29 tables across six domains.
 **System:** `/sitemap.xml` · `/robots.txt` · `/feed.xml` (RSS) · `/api/og` · `/manifest.webmanifest`.
 
 ### 8.1 Student onboarding wizard (5 steps)
+
 1. Academic preferences (language, study mode, preferred coaching optional, preferred city, target
    exam, target year, study start date optional).
 2. Budget (min–max slider, preferred fee type: one-time / EMI).
@@ -361,14 +377,14 @@ approved, batch recommendation, admin notifications. React-email templates; queu
 
 Each phase gets its **own spec → plan → build** cycle.
 
-| Phase | Scope | Exit criteria |
-|---|---|---|
-| **P0 — Foundation** | Repo, Next.js 16/TS/Tailwind/shadcn, Supabase project, design system (tokens, core components, dark mode), env validation, CSP + security headers, CI/CD, base layout + nav, logo assets. | App boots on Vercel; design system + nav/footer render; security headers pass; CI green. |
+| Phase                                      | Scope                                                                                                                                                                                         | Exit criteria                                                                            |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| **P0 — Foundation**                 | Repo, Next.js 16/TS/Tailwind/shadcn, Supabase project, design system (tokens, core components, dark mode), env validation, CSP + security headers, CI/CD, base layout + nav, logo assets.     | App boots on Vercel; design system + nav/footer render; security headers pass; CI green. |
 | **P1 — DB + Super Admin dashboard** | Full schema + enums + RLS + triggers + seed; complete admin panel (all CRUD, search, filters, pagination, bulk, CSV), moderation, media, audit logs, KPI dashboard; admin login-portal + PIN. | Super admin can log in and enter/manage every entity; RLS verified; audit logging works. |
-| **P2 — Public site** | Homepage, `/batches` search + filters, batch & coaching pages, exam/city SEO landing pages, discounts, blog; full SEO infra (metadata, JSON-LD, sitemap, robots, RSS, OG). | Public catalog displays admin data; Lighthouse targets met; structured data validates. |
-| **P3 — Student accounts** | Auth (email+password, Google, verify, reset), 5-step onboarding wizard, profile, saved batches, requirement marketplace, discount requests, notifications + transactional email. | Student can sign up, onboard, save, post requirements, request discounts; emails send. |
-| **Deferred — Coaching self-serve** | Coaching signup, claim flow, coaching portal, member + per-branch scoping, moderation integration. | Enabled with **no schema change** when prioritized. |
-| **Later — Growth** | AI recommendations, chatbot, scholarship engine, referrals, badges, push, payments, React Native app. | Each a separate initiative on the same foundation. |
+| **P2 — Public site**                | Homepage,`/batches` search + filters, batch & coaching pages, exam/city SEO landing pages, discounts, blog; full SEO infra (metadata, JSON-LD, sitemap, robots, RSS, OG).                   | Public catalog displays admin data; Lighthouse targets met; structured data validates.   |
+| **P3 — Student accounts**           | Auth (email+password, Google, verify, reset), 5-step onboarding wizard, profile, saved batches, requirement marketplace, discount requests, notifications + transactional email.              | Student can sign up, onboard, save, post requirements, request discounts; emails send.   |
+| **Deferred — Coaching self-serve**  | Coaching signup, claim flow, coaching portal, member + per-branch scoping, moderation integration.                                                                                            | Enabled with**no schema change** when prioritized.                                 |
+| **Later — Growth**                  | AI recommendations, chatbot, scholarship engine, referrals, badges, push, payments, React Native app.                                                                                         | Each a separate initiative on the same foundation.                                       |
 
 ---
 

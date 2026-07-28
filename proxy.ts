@@ -18,14 +18,21 @@ export function adminGateDecision(pathname: string, hasSession: boolean): GateDe
 // ─── Proxy ────────────────────────────────────────────────────────────────────
 
 export async function proxy(request: NextRequest) {
-  // 1. Build the response and attach security headers
-  let response = NextResponse.next({ request });
+  // 1. Build the response and attach security headers (always).
+  const response = NextResponse.next({ request });
   response.headers.set("Content-Security-Policy", buildCspHeader(isDev));
   for (const [key, value] of Object.entries(securityHeaders)) {
     response.headers.set(key, value);
   }
 
-  // 2. Supabase session refresh (writes refreshed cookies onto `response`)
+  // 2. Only guarded /admin routes need a Supabase session check. Public routes
+  //    (and the login portal) skip it entirely, so a slow or unreachable DB
+  //    never blocks or crashes public page loads.
+  const { pathname } = request.nextUrl;
+  const needsAuth = pathname.startsWith("/admin") && !pathname.startsWith("/admin/login-portal");
+  if (!needsAuth) return response;
+
+  // 3. Supabase session refresh (writes refreshed cookies onto `response`).
   const supabase = createServerClient(
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -40,12 +47,21 @@ export async function proxy(request: NextRequest) {
       },
     },
   );
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
-  // 3. Admin gate
-  const decision = adminGateDecision(request.nextUrl.pathname, Boolean(user));
+  // A network failure reaching Supabase must not 500 the app — treat it as an
+  // unauthenticated request and let the gate redirect to the login portal.
+  let hasSession = false;
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    hasSession = Boolean(user);
+  } catch {
+    hasSession = false;
+  }
+
+  // 4. Admin gate
+  const decision = adminGateDecision(pathname, hasSession);
   if (decision.type === "redirect") {
     return NextResponse.redirect(new URL(decision.to, request.url));
   }
