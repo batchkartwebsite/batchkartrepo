@@ -26,7 +26,7 @@ function formatDate(iso: string): string {
   });
 }
 
-export function QueriesListView({
+export function ContactListView({
   rows,
   batchNames,
 }: {
@@ -58,17 +58,17 @@ export function QueriesListView({
     <div className="space-y-6 p-6 lg:p-8">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-          Queries
+          Contact
         </h1>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          {rows.length} total — enquiries submitted from the site.
+          {rows.length} total — messages from the contact form.
         </p>
       </div>
 
       {rows.length === 0 ? (
         <EmptyState
-          title="No queries yet"
-          description="Enquiries submitted by visitors will appear here."
+          title="No messages yet"
+          description="Messages from the contact form will appear here."
         />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-border">

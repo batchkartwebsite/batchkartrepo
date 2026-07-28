@@ -9,9 +9,9 @@ export const siteConfig = {
   // Header nav — all targets resolve (page routes or on-page anchors).
   mainNav: [
     { label: "Batches", href: "/batches" },
+    { label: "Enquire", href: "/enquire" },
     { label: "Exams", href: "/#exams" },
     { label: "How it works", href: "/#how" },
-    { label: "Reviews", href: "/#reviews" },
     { label: "FAQ", href: "/#faq" },
   ] satisfies NavLink[],
   footer: {
@@ -24,7 +24,7 @@ export const siteConfig = {
     company: [
       { label: "Why BatchKart", href: "/#why" },
       { label: "FAQ", href: "/#faq" },
-      { label: "Send an enquiry", href: "/batches#enquiry" },
+      { label: "Post a requirement", href: "/enquire" },
     ] satisfies NavLink[],
   },
 } as const;

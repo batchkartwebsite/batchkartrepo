@@ -26,10 +26,10 @@ export function SiteFooter() {
             </p>
           </div>
           <Link
-            href="/batches#enquiry"
+            href="/enquire"
             className="inline-flex shrink-0 items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5"
           >
-            Send an enquiry →
+            Post a requirement →
           </Link>
         </div>
 

@@ -20,12 +20,17 @@ export async function submitQuery(raw: unknown) {
   }
   const { name, phone, email, message, batch_id } = parsed.data;
   const supabase = await createClient();
+  // Attach the enquiry to the signed-in user (if any) so they can track it.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const { error } = await supabase.from("queries").insert({
     name,
     phone,
     email: email || null,
     message: message || null,
     batch_id: batch_id || null,
+    user_id: user?.id ?? null,
   });
   if (error) return { ok: false as const, error: error.message };
   return { ok: true as const };

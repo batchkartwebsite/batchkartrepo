@@ -210,6 +210,146 @@ export type Database = {
           },
         ]
       }
+      coaching_centers: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      coaching_cities: {
+        Row: {
+          coaching_id: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          coaching_id: string
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          coaching_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaching_cities_coaching_id_fkey"
+            columns: ["coaching_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_centers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      enquiries: {
+        Row: {
+          achievements: string | null
+          batch_ids: Json
+          budget: number | null
+          cities: Json
+          class_level: string | null
+          coaching_choices: Json
+          created_at: string
+          email: string | null
+          exam: string | null
+          id: string
+          name: string
+          phone: string
+          scholarship_reason: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          achievements?: string | null
+          batch_ids?: Json
+          budget?: number | null
+          cities?: Json
+          class_level?: string | null
+          coaching_choices?: Json
+          created_at?: string
+          email?: string | null
+          exam?: string | null
+          id?: string
+          name: string
+          phone: string
+          scholarship_reason?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          achievements?: string | null
+          batch_ids?: Json
+          budget?: number | null
+          cities?: Json
+          class_level?: string | null
+          coaching_choices?: Json
+          created_at?: string
+          email?: string | null
+          exam?: string | null
+          id?: string
+          name?: string
+          phone?: string
+          scholarship_reason?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      exams: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -262,6 +402,7 @@ export type Database = {
           name: string
           phone: string
           status: string
+          user_id: string | null
         }
         Insert: {
           batch_id?: string | null
@@ -272,6 +413,7 @@ export type Database = {
           name: string
           phone: string
           status?: string
+          user_id?: string | null
         }
         Update: {
           batch_id?: string | null
@@ -282,6 +424,7 @@ export type Database = {
           name?: string
           phone?: string
           status?: string
+          user_id?: string | null
         }
         Relationships: [
           {

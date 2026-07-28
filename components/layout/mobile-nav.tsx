@@ -42,11 +42,11 @@ export function MobileNav() {
             ))}
           </nav>
           <Link
-            href="/batches#enquiry"
+            href="/enquire"
             onClick={() => setOpen(false)}
             className="mt-4 block rounded-full bg-primary px-5 py-3 text-center text-sm font-semibold text-primary-foreground"
           >
-            Send an enquiry
+            Post a requirement
           </Link>
         </div>
       ) : null}

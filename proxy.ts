@@ -25,12 +25,13 @@ export async function proxy(request: NextRequest) {
     response.headers.set(key, value);
   }
 
-  // 2. Only guarded /admin routes need a Supabase session check. Public routes
+  // 2. Only authenticated areas touch Supabase in middleware. Public routes
   //    (and the login portal) skip it entirely, so a slow or unreachable DB
   //    never blocks or crashes public page loads.
   const { pathname } = request.nextUrl;
-  const needsAuth = pathname.startsWith("/admin") && !pathname.startsWith("/admin/login-portal");
-  if (!needsAuth) return response;
+  const isAdmin = pathname.startsWith("/admin") && !pathname.startsWith("/admin/login-portal");
+  const isAccount = pathname.startsWith("/account");
+  if (!isAdmin && !isAccount) return response;
 
   // 3. Supabase session refresh (writes refreshed cookies onto `response`).
   const supabase = createServerClient(
@@ -60,10 +61,12 @@ export async function proxy(request: NextRequest) {
     hasSession = false;
   }
 
-  // 4. Admin gate
-  const decision = adminGateDecision(pathname, hasSession);
-  if (decision.type === "redirect") {
-    return NextResponse.redirect(new URL(decision.to, request.url));
+  // 4. Admin gate (the /account page self-guards via its own getUser check).
+  if (isAdmin) {
+    const decision = adminGateDecision(pathname, hasSession);
+    if (decision.type === "redirect") {
+      return NextResponse.redirect(new URL(decision.to, request.url));
+    }
   }
 
   return response;

@@ -1,19 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
+import { getActiveCatalog, isBatchVisible } from "@/lib/server/catalog";
 import { BatchCard } from "@/components/batches/batch-card";
 import { INSTITUTES } from "@/lib/institutes";
-
-const EXAMS = [
-  { name: "NEET", emoji: "🩺", blurb: "Medical entrance" },
-  { name: "JEE", emoji: "⚛️", blurb: "Engineering entrance" },
-  { name: "UPSC", emoji: "🏛️", blurb: "Civil services" },
-  { name: "CAT", emoji: "📊", blurb: "MBA entrance" },
-  { name: "GATE", emoji: "🛠️", blurb: "PG & PSUs" },
-  { name: "SSC", emoji: "🗂️", blurb: "Govt. jobs" },
-  { name: "CLAT", emoji: "⚖️", blurb: "Law entrance" },
-  { name: "Banking", emoji: "🏦", blurb: "IBPS / SBI" },
-];
+import { POPULAR_EXAMS } from "@/lib/exams";
 
 const STEPS = [
   {
@@ -93,10 +84,12 @@ async function getFeaturedBatches() {
       .eq("moderation_status", "published")
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
-      .limit(6)
+      .limit(12)
       .abortSignal(controller.signal);
     clearTimeout(timeout);
-    return data ?? [];
+    // Hide batches whose coaching/exam has been turned off.
+    const cat = await getActiveCatalog();
+    return (data ?? []).filter((b) => isBatchVisible(b, cat)).slice(0, 6);
   } catch {
     return [];
   }
@@ -145,7 +138,7 @@ export default async function HomePage() {
                 Explore batches →
               </Link>
               <Link
-                href="/batches#enquiry"
+                href="/enquire"
                 className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-6 py-3.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
               >
                 Post a requirement
@@ -291,10 +284,10 @@ export default async function HomePage() {
             </h2>
           </div>
           <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {EXAMS.map((e) => (
+            {POPULAR_EXAMS.map((e) => (
               <Link
                 key={e.name}
-                href="/batches"
+                href={`/batches?exam=${encodeURIComponent(e.name)}`}
                 className="group rounded-2xl border border-border bg-card p-5 transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg"
               >
                 <span className="grid size-12 place-items-center rounded-2xl bg-primary/10 text-2xl">
@@ -446,10 +439,10 @@ export default async function HomePage() {
               Explore batches →
             </Link>
             <Link
-              href="/batches#enquiry"
+              href="/enquire"
               className="inline-flex items-center gap-2 rounded-full border border-white/20 px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
             >
-              Send an enquiry
+              Post a requirement
             </Link>
           </div>
         </div>

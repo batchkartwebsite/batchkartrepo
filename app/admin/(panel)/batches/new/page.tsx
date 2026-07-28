@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { BatchForm } from "../batch-form";
+import { getBatchFormOptions } from "../options";
 
-export default function NewBatchPage() {
+export default async function NewBatchPage() {
+  const { coachingOptions, examOptions, cityByCoaching } = await getBatchFormOptions();
+
   return (
     <div className="mx-auto max-w-2xl space-y-6 p-6 lg:p-8">
       <div>
@@ -16,7 +19,12 @@ export default function NewBatchPage() {
         </h1>
       </div>
       <div className="rounded-xl border border-border bg-background p-6 dark:bg-slate-950">
-        <BatchForm mode="create" />
+        <BatchForm
+          mode="create"
+          examOptions={examOptions}
+          coachingOptions={coachingOptions}
+          cityByCoaching={cityByCoaching}
+        />
       </div>
     </div>
   );

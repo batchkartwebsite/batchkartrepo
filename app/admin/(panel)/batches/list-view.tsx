@@ -28,10 +28,12 @@ export function BatchesListView({
   rows,
   total,
   params,
+  blockedReasons = {},
 }: {
   rows: BatchRow[];
   total: number;
   params: ListParams;
+  blockedReasons?: Record<string, string>;
 }) {
   const router = useRouter();
   const [selected, setSelected] = useState<string[]>([]);
@@ -69,17 +71,34 @@ export function BatchesListView({
       {
         key: "__actions",
         header: "Actions",
-        cell: (r) => (
-          <Link
-            href={`/admin/batches/${r.id}/edit`}
-            className="font-medium text-emerald-600 hover:text-emerald-500 dark:text-emerald-400"
-          >
-            Edit
-          </Link>
-        ),
+        cell: (r) => {
+          const reason = blockedReasons[r.id];
+          if (reason) {
+            return (
+              <span className="flex flex-col gap-0.5">
+                <span
+                  className="cursor-not-allowed font-medium text-slate-400"
+                  title={reason}
+                  aria-disabled="true"
+                >
+                  🔒 Locked
+                </span>
+                <span className="text-xs text-amber-600 dark:text-amber-400">{reason}</span>
+              </span>
+            );
+          }
+          return (
+            <Link
+              href={`/admin/batches/${r.id}/edit`}
+              className="font-medium text-emerald-600 hover:text-emerald-500 dark:text-emerald-400"
+            >
+              Edit
+            </Link>
+          );
+        },
       },
     ],
-    [],
+    [blockedReasons],
   );
 
   function runBulkDelete() {

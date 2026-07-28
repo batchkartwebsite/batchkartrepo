@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { AuthNav } from "@/components/layout/auth-nav";
 import { siteConfig } from "@/config/site";
 
 export function SiteHeader() {
@@ -41,12 +42,7 @@ export function SiteHeader() {
 
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Link
-              href="/batches#enquiry"
-              className="hidden rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:-translate-y-px hover:shadow-md sm:inline-flex"
-            >
-              Send enquiry
-            </Link>
+            <AuthNav />
             <MobileNav />
           </div>
         </div>

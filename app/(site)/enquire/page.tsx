@@ -1,0 +1,141 @@
+import { createClient } from "@/lib/supabase/server";
+import { getActiveCatalog, isBatchVisible } from "@/lib/server/catalog";
+import { EnquireWizard, type BatchOption } from "./enquire-wizard";
+
+export const metadata = {
+  title: "Post a requirement",
+  description: "Tell us your exam, budget and preferences — we'll match you to the right batches.",
+};
+
+function formatFee(fee: number | null): string {
+  return fee != null ? `₹${fee.toLocaleString("en-IN")}` : "On request";
+}
+
+export default async function EnquirePage() {
+  const supabase = await createClient();
+
+  let userId: string | null = null;
+  let prefill: { name: string; phone: string; email: string } | null = null;
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      userId = user.id;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, phone, email")
+        .eq("id", user.id)
+        .single();
+      prefill = {
+        name: profile?.full_name ?? (user.user_metadata?.full_name as string) ?? "",
+        phone: profile?.phone ?? "",
+        email: profile?.email ?? user.email ?? "",
+      };
+    }
+  } catch {
+    /* not logged in / transient — treat as guest */
+  }
+
+  const [{ data: exams }, { data: coachingRows }, { data: cityRows }, { data: batchRows }] =
+    await Promise.all([
+      supabase.from("exams").select("name").eq("is_active", true).order("sort_order").order("name"),
+      supabase.from("coaching_centers").select("id, name").eq("is_active", true).order("sort_order").order("name"),
+      supabase.from("coaching_cities").select("name, coaching_id"),
+      supabase
+        .from("batches")
+        .select("id, name, exam, institute_name, fee, discounted_fee, moderation_status, deleted_at")
+        .eq("moderation_status", "published")
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false }),
+    ]);
+
+  const cat = await getActiveCatalog();
+
+  const citiesByCoachingId = new Map<string, string[]>();
+  for (const c of cityRows ?? []) {
+    const list = citiesByCoachingId.get(c.coaching_id) ?? [];
+    list.push(c.name);
+    citiesByCoachingId.set(c.coaching_id, list);
+  }
+  const coaching = (coachingRows ?? []).map((c) => ({
+    name: c.name,
+    cities: citiesByCoachingId.get(c.id) ?? [],
+  }));
+
+  const visibleBatches = (batchRows ?? []).filter((b) => isBatchVisible(b, cat));
+  const batchOptions: BatchOption[] = visibleBatches.map((b) => ({
+    id: b.id,
+    name: b.name,
+    exam: b.exam,
+    institute_name: b.institute_name,
+    fee: b.fee,
+    discounted_fee: b.discounted_fee,
+  }));
+  const discounted = batchOptions.filter(
+    (b) => b.discounted_fee != null && b.fee != null && b.discounted_fee < b.fee,
+  );
+
+  return (
+    <div className="mx-auto max-w-[1160px] px-6 py-12 lg:px-[60px]">
+      <header className="max-w-2xl">
+        <p className="text-sm font-semibold uppercase tracking-widest text-primary">Post a requirement</p>
+        <h1 className="font-display mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
+          Let&apos;s find your perfect batch
+        </h1>
+        <p className="mt-3 text-muted-foreground">
+          Answer a few quick questions and our team will shortlist the best-fit batches for you.
+        </p>
+      </header>
+
+      <div className="mt-10 grid gap-8 lg:grid-cols-[1.6fr_1fr]">
+        <EnquireWizard
+          exams={(exams ?? []).map((e) => e.name)}
+          coaching={coaching}
+          batches={batchOptions}
+          prefill={prefill}
+          isLoggedIn={Boolean(userId)}
+        />
+
+        {/* Discounted batches */}
+        <aside className="lg:sticky lg:top-24 lg:self-start">
+          <div className="rounded-3xl border border-border bg-card p-6">
+            <h2 className="font-display text-lg font-semibold">🔥 Discounted batches</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Limited-time offers you can enquire about.</p>
+            {discounted.length === 0 ? (
+              <p className="mt-6 text-sm text-muted-foreground">No active discounts right now.</p>
+            ) : (
+              <ul className="mt-5 space-y-3">
+                {discounted.slice(0, 6).map((b) => {
+                  const off = Math.round((1 - (b.discounted_fee as number) / (b.fee as number)) * 100);
+                  return (
+                    <li key={b.id} className="rounded-2xl border border-border bg-background p-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-foreground">{b.name}</p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {b.institute_name ?? "—"}
+                            {b.exam ? ` · ${b.exam}` : ""}
+                          </p>
+                        </div>
+                        <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
+                          {off}% off
+                        </span>
+                      </div>
+                      <div className="mt-2 flex items-baseline gap-2">
+                        <span className="font-display text-lg font-semibold text-foreground">
+                          {formatFee(b.discounted_fee)}
+                        </span>
+                        <span className="text-sm text-muted-foreground line-through">{formatFee(b.fee)}</span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}

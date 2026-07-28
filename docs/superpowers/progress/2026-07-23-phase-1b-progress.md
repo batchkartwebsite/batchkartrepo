@@ -70,6 +70,51 @@ Everything else was dropped (coaching*, categories, cities/states, discounts, re
 7. CSP needs `'unsafe-inline'` in `script-src` or React never hydrates (forms do native GET). Unlock cookie `secure` only in prod.
 8. Node 20 + `@supabase/supabase-js`: deprecation warning at build (harmless); consider Node 22+.
 
+## Phase 2 (2026-07-28) — user accounts + polish
+
+### DB (migrations `20260728120000_phase2_user_accounts.sql`, `20260728123000_phase2_security_hardening.sql`)
+- `queries.user_id` → `auth.users` (nullable). RLS: insert tightened (`user_id is null or = auth.uid()`), `queries_owner_read` lets users read their own. `handle_new_user` now also stores `phone` from signup metadata.
+- Hardening: `set search_path` on `set_updated_at` + `batches_search_vector_update`; dropped orphaned `recompute_coaching_rating`.
+
+### User auth (Supabase Auth, browser-client based so the header reacts live)
+- Pages under `app/(auth)/` (split-screen brand layout): `/login`, `/signup` (name + email + phone-optional + password), `/forgot-password`, `/reset-password`. `app/auth/callback/route.ts` exchanges OAuth/email codes.
+- `components/auth/`: `field.tsx`, `google-button.tsx` (Continue with Google). `features/user-auth/schemas.ts` (zod).
+- Header `AuthNav` (`components/layout/auth-nav.tsx`) — session via browser client + `onAuthStateChange`; Sign in/Sign up ↔ avatar dropdown (My account / My enquiries / Sign out).
+- `/account` (`app/(site)/account/`) — guarded (self `getUser` → redirect `/login`); profile + the user's enquiries. `submitQuery` now attaches `user_id` when logged in.
+- `proxy.ts` refreshes session for `/admin` **and** `/account` (public routes still Supabase-free).
+
+### Other
+- Favicon: `app/icon.svg` (brand mark) → Next generates the favicon.
+- Exam filtering: `/batches?exam=` (ilike) + chips; homepage exam cards + `lib/exams.ts` (`POPULAR_EXAMS`).
+- Admin dashboard rebuilt: KPI cards (total/published batches, total/new queries) + recent enquiries + recent batches + quick actions.
+- Logos: re-fetched low-res ones (resonance improved; FIITJEE/BYJU'S remain low-res from all public favicon sources).
+- `package.json` engines → node >=22.
+
+### Coaching + Exam admin sections (migration `20260728140000_coaching_exam_lookups.sql`)
+- New tables `coaching_centers` (name, logo_url, is_active, sort_order) + `exams` (name, is_active, sort_order), RLS: public read active / admin all. Seeded to match existing demo batches.
+- Sidebar: **Coaching** (`/admin/coaching`) + **Exams** (`/admin/exams`), both using `components/admin/lookup-manager.tsx` — add form, inline on/off toggle switch, delete. Coaching rows show a logo.
+- Batch form dropdowns are now **dynamic**: `institute_name` + `exam` selects are populated from the active rows (`getBatchFormOptions()` in `app/admin/(panel)/batches/options.ts`), no more free-typing. Values stay stored as text (no FK) so existing batches + public exam filtering are unaffected; the edit form keeps a saved value selectable even if later toggled off.
+
+### Coaching cities + toggle behaviour (migration `20260729090000_coaching_cities.sql`)
+- New `coaching_cities` (per coaching center). Coaching admin (`components/admin/coaching-manager.tsx`) now: toggle-only (no delete), per-row **cities** with add + remove; **confirm modals** on city removal and on turning a coaching/exam **off** (warns: hidden from homepage/public, batches stop showing, and become locked in admin). Reusable `ToggleSwitch` (fixed alignment) + enhanced `ConfirmDialog` (tone/icon, ReactNode body).
+- Batch form `city` is now a **dependent select** — options come from the selected coaching's cities (`cityByCoaching` from `getBatchFormOptions`).
+- **Public hiding:** `lib/server/catalog.ts` (`getActiveCatalog`, `isBatchVisible`, `blockedReason`). Homepage + `/batches` hide batches whose coaching/exam is turned off. Admin batch list shows such rows as **🔒 Locked** with the reason (edit disabled).
+
+### Enquire / Contact / Discounted (migration `20260729110000_enquiries.sql`)
+- **Contact** = the old "Queries" (simple `/batches` form → `queries` table). Renamed everywhere; admin section `/admin/contact`.
+- **Enquire** = new detailed lead flow. `enquiries` table (exam, class, coaching_choices[], cities[], batch_ids[], budget, scholarship_reason, achievements, user_id). Public `/enquire`: a 4-step wizard (Exam → Coaching+cities → Batches+budget → details, prefilled if logged in) on the left, **discounted batches** panel on the right. `submitEnquiry` attaches user_id.
+- Admin **Enquiries** (`/admin/enquiries`) — detailed cards + status + delete (confirm). Admin **Discounted** (`/admin/discounted`) — inline set/clear discounted price per batch.
+- Sidebar reorganised: Overview · Catalog (Batches, Discounted, Coaching, Exams) · Leads (Enquiries, Contact). Public nav + CTAs ("Post a requirement") point to `/enquire`.
+
+### ⚠️ Requires Supabase dashboard config to fully work (code is ready)
+1. **Google login**: Authentication → Providers → enable Google + add OAuth client ID/secret (Google Cloud console). Until then the button shows "not available yet".
+2. **Redirect/Site URLs**: Authentication → URL config → set Site URL to the app origin and add `<origin>/auth/callback` to Redirect URLs (for OAuth, email confirm, password reset).
+3. **Email**: default Supabase email is rate-limited — add SMTP for production. Signup uses the email-confirmation flow.
+4. **Recommended**: enable "Leaked password protection" (advisor WARN). Phone-OTP login was NOT built (needs a paid SMS provider) — phone is collected as an optional profile field only.
+
+### Security advisors (run 2026-07-28)
+All WARN, no errors. `queries` table is clean. Remaining are pre-existing/project-wide: extensions in `public` (citext/pg_trgm/unaccent), leftover storage buckets (avatars/media) with broad SELECT, SECURITY DEFINER helpers exposed via RPC (is_admin/current_profile_role/handle_new_user — left as-is; used by RLS), leaked-password protection off.
+
 ## Deferred / not done
 - Tests (implementation-first).
 - Commit + push (kept local per instruction).

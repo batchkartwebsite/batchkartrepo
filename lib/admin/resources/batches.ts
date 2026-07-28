@@ -108,11 +108,13 @@ export const batchesResource: ResourceConfig<"batches"> = {
     }),
     // Field order matters — the form renders them in these steps.
     fields: [
+      // Options for exam + institute are injected at render time from the
+      // admin-managed `exams` / `coaching_centers` tables (see batch-form.tsx).
       { name: "exam", type: "select", label: "Exam", options: EXAM_OPTIONS },
-      { name: "institute_name", type: "text", label: "Coaching / Institute name" },
+      { name: "institute_name", type: "select", label: "Coaching / Institute" },
       { name: "name", type: "text", label: "Batch name" },
       { name: "slug", type: "slug", label: "Slug", from: "name" },
-      { name: "city", type: "text", label: "City" },
+      { name: "city", type: "select", label: "City" },
       { name: "teacher", type: "text", label: "Teacher" },
       { name: "mode", type: "select", label: "Mode", options: MODE_OPTIONS },
       { name: "language", type: "select", label: "Language", options: LANGUAGE_OPTIONS },

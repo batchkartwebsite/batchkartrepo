@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import { QueriesListView } from "./list-view";
+import { ContactListView } from "./list-view";
 
-export default async function QueriesPage() {
+export default async function ContactPage() {
   const supabase = await createClient();
   const { data: queries } = await supabase
     .from("queries")
@@ -13,5 +13,5 @@ export default async function QueriesPage() {
     (batches ?? []).map((b) => [b.id, b.name]),
   );
 
-  return <QueriesListView rows={queries ?? []} batchNames={batchNames} />;
+  return <ContactListView rows={queries ?? []} batchNames={batchNames} />;
 }

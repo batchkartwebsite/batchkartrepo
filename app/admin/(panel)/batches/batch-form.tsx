@@ -39,25 +39,48 @@ function Field({ field }: { field: FieldDef<TableName> }) {
   }
 }
 
+type Option = { label: string; value: string };
+
 export function BatchForm({
   mode,
   id,
   defaultValues,
+  examOptions = [],
+  coachingOptions = [],
+  cityByCoaching = {},
 }: {
   mode: "create" | "edit";
   id?: string;
   defaultValues?: Record<string, unknown>;
+  examOptions?: Option[];
+  coachingOptions?: Option[];
+  cityByCoaching?: Record<string, string[]>;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  // Look up field defs by name so steps can render them in a chosen order.
+  // Ensure the batch's currently-saved exam/coaching stays selectable even if
+  // it was later toggled off in the admin lists.
+  function withCurrent(options: Option[], current: unknown): Option[] {
+    const value = typeof current === "string" ? current.trim() : "";
+    if (value && !options.some((o) => o.value === value)) {
+      return [{ label: value, value }, ...options];
+    }
+    return options;
+  }
+
+  // Look up field defs by name, injecting the dynamic dropdown options.
   const byName = useMemo(() => {
     const map: Record<string, FieldDef<TableName>> = {};
     for (const f of batchesResource.form.fields) map[f.name] = f as FieldDef<TableName>;
+    map.exam = { ...map.exam, options: withCurrent(examOptions, defaultValues?.exam) };
+    map.institute_name = {
+      ...map.institute_name,
+      options: withCurrent(coachingOptions, defaultValues?.institute_name),
+    };
     return map;
-  }, []);
+  }, [examOptions, coachingOptions, defaultValues]);
 
   const methods = useForm({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -69,6 +92,14 @@ export function BatchForm({
   const institute = methods.watch("institute_name");
   const showStep2 = Boolean(exam);
   const showStep3 = Boolean(exam) && Boolean(institute && String(institute).trim());
+
+  // City options depend on the currently-selected coaching center.
+  const instituteName = typeof institute === "string" ? institute : "";
+  const cityOptions = (cityByCoaching[instituteName] ?? []).map((c) => ({ label: c, value: c }));
+  const cityField: FieldDef<TableName> = {
+    ...byName.city,
+    options: withCurrent(cityOptions, defaultValues?.city),
+  };
 
   function handleSubmit(values: Record<string, unknown>) {
     setError(null);
@@ -142,9 +173,14 @@ export function BatchForm({
             </legend>
             <div className="mt-2 grid gap-5 sm:grid-cols-2">
               {detailFields.map((n) => (
-                <Field key={n} field={byName[n]} />
+                <Field key={n} field={n === "city" ? cityField : byName[n]} />
               ))}
             </div>
+            {cityOptions.length === 0 ? (
+              <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+                No cities added for this coaching yet — add them under Coaching in the sidebar.
+              </p>
+            ) : null}
             <div className="mt-5 flex flex-col gap-5">
               <Field field={byName.scholarship_available} />
               <Field field={byName.description} />
