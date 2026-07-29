@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Flame, TicketPercent, ArrowRight, PencilLine, ListChecks, Handshake } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCatalog, isBatchVisible } from "@/lib/server/catalog";
 import { EnquireWizard, type BatchOption } from "./enquire-wizard";
@@ -13,6 +14,24 @@ export const metadata = pageMetadata({
 function formatFee(fee: number | null): string {
   return fee != null ? `₹${fee.toLocaleString("en-IN")}` : "On request";
 }
+
+const ENQUIRE_STEPS = [
+  {
+    Icon: PencilLine,
+    title: "Tell us what you need",
+    body: "Share your exam, budget and preferred coaching or batches. It takes about a minute.",
+  },
+  {
+    Icon: ListChecks,
+    title: "We shortlist the best fit",
+    body: "Our team matches you with verified batches for your goal, city and budget.",
+  },
+  {
+    Icon: Handshake,
+    title: "Get connected, free",
+    body: "We introduce you to the institute. No charges, no spam, and you stay in control.",
+  },
+];
 
 export default async function EnquirePage({
   searchParams,
@@ -96,15 +115,36 @@ export default async function EnquirePage({
 
   return (
     <div className="mx-auto max-w-[1160px] px-6 py-12 lg:px-[60px]">
-      <header className="max-w-2xl">
+      <header className="max-w-3xl">
         <p className="text-sm font-semibold uppercase tracking-widest text-primary">Post a requirement</p>
         <h1 className="font-display mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
           Let&apos;s find your perfect batch
         </h1>
-        <p className="mt-3 text-muted-foreground">
-          Answer a few quick questions and our team will shortlist the best-fit batches for you.
+        <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+          Not sure which coaching or batch is right for you? Post a requirement and let us do the
+          legwork. Tell us your exam, budget and preferences, and our team shortlists the best-fit
+          batches across verified institutes, then connects you directly. It&apos;s completely free,
+          with no spam and no pressure.
         </p>
       </header>
+
+      {/* How enquiring works */}
+      <div className="mt-8 grid gap-3 sm:grid-cols-3">
+        {ENQUIRE_STEPS.map((s, i) => (
+          <div key={s.title} className="rounded-2xl border border-border bg-card p-5">
+            <div className="flex items-center gap-3">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                <s.Icon className="size-5" />
+              </span>
+              <span className="font-display text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                Step {i + 1}
+              </span>
+            </div>
+            <h2 className="mt-3 font-display text-base font-semibold text-foreground">{s.title}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{s.body}</p>
+          </div>
+        ))}
+      </div>
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[1.6fr_1fr]">
         <EnquireWizard
@@ -127,7 +167,7 @@ export default async function EnquirePage({
             {/* Header */}
             <div className="flex items-center justify-between gap-2 border-b border-border px-5 py-4">
               <div className="flex items-center gap-2">
-                <span aria-hidden className="text-base">🔥</span>
+                <Flame className="size-4 text-amber-500" />
                 <h2 className="font-display text-base font-semibold">Discounted batches</h2>
               </div>
               {discounted.length > 0 ? (
@@ -139,8 +179,10 @@ export default async function EnquirePage({
 
             {discounted.length === 0 ? (
               <div className="px-5 py-12 text-center">
-                <p className="text-3xl">🎯</p>
-                <p className="mt-2 text-sm text-muted-foreground">No active discounts right now.</p>
+                <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-muted text-muted-foreground">
+                  <TicketPercent className="size-6" />
+                </span>
+                <p className="mt-3 text-sm text-muted-foreground">No active discounts right now.</p>
               </div>
             ) : (
               <ul className="bk-scroll max-h-[400px] space-y-2.5 overflow-y-auto p-3 lg:max-h-[calc(100vh-13rem)]">
@@ -173,7 +215,7 @@ export default async function EnquirePage({
                           </div>
                           <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary">
                             Add
-                            <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
+                            <ArrowRight aria-hidden className="size-3.5 transition-transform group-hover:translate-x-0.5" />
                           </span>
                         </div>
                       </Link>
