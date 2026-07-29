@@ -394,8 +394,8 @@ export type Database = {
       }
       queries: {
         Row: {
-          batch_id: string | null
           created_at: string
+          exam: string | null
           email: string | null
           id: string
           message: string | null
@@ -405,8 +405,8 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          batch_id?: string | null
           created_at?: string
+          exam?: string | null
           email?: string | null
           id?: string
           message?: string | null
@@ -416,8 +416,8 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          batch_id?: string | null
           created_at?: string
+          exam?: string | null
           email?: string | null
           id?: string
           message?: string | null
@@ -426,15 +426,7 @@ export type Database = {
           status?: string
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "queries_batch_id_fkey"
-            columns: ["batch_id"]
-            isOneToOne: false
-            referencedRelation: "batches"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {

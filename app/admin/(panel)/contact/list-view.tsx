@@ -26,13 +26,7 @@ function formatDate(iso: string): string {
   });
 }
 
-export function ContactListView({
-  rows,
-  batchNames,
-}: {
-  rows: QueryRow[];
-  batchNames: Record<string, string>;
-}) {
+export function ContactListView({ rows }: { rows: QueryRow[] }) {
   const router = useRouter();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -75,7 +69,7 @@ export function ContactListView({
           <table className="w-full border-collapse text-sm">
             <thead className="bg-slate-50 dark:bg-slate-900">
               <tr>
-                {["Name", "Phone", "Email", "Message", "Batch", "Status", "Received", ""].map(
+                {["Name", "Phone", "Email", "Message", "Exam", "Status", "Received", ""].map(
                   (h) => (
                     <th
                       key={h}
@@ -103,9 +97,7 @@ export function ContactListView({
                   <td className="max-w-xs px-3 py-2.5 text-slate-700 dark:text-slate-300">
                     {r.message ?? "—"}
                   </td>
-                  <td className="px-3 py-2.5 text-slate-700 dark:text-slate-300">
-                    {r.batch_id ? (batchNames[r.batch_id] ?? "—") : "—"}
-                  </td>
+                  <td className="px-3 py-2.5 text-slate-700 dark:text-slate-300">{r.exam ?? "—"}</td>
                   <td className="px-3 py-2.5">
                     <select
                       value={r.status}

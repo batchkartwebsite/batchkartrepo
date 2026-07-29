@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { getActiveCatalog, isBatchVisible } from "@/lib/server/catalog";
+import { getActiveCatalog, isBatchVisible, getActiveExamNames } from "@/lib/server/catalog";
 import { BatchCard } from "@/components/batches/batch-card";
 import { POPULAR_EXAMS } from "@/lib/exams";
 import { EnquiryForm } from "./enquiry-form";
@@ -43,7 +43,7 @@ export default async function BatchesPage({
   const activeExam = examRaw?.trim() || undefined;
 
   const batches = await getPublishedBatches(activeExam);
-  const options = batches.map((b) => ({ id: b.id, name: b.name }));
+  const examNames = await getActiveExamNames();
 
   return (
     <div className="overflow-x-hidden">
@@ -153,7 +153,7 @@ export default async function BatchesPage({
               </ul>
             </div>
             <div className="p-8 lg:p-10">
-              <EnquiryForm batches={options} />
+              <EnquiryForm exams={examNames} />
             </div>
           </div>
         </section>

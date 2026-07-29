@@ -24,6 +24,22 @@ export async function getActiveCatalog(): Promise<Catalog | null> {
   }
 }
 
+/** Active exam names (for the contact form dropdown). Empty on failure. */
+export async function getActiveExamNames(): Promise<string[]> {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("exams")
+      .select("name")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+      .order("name", { ascending: true });
+    return (data ?? []).map((e) => e.name);
+  } catch {
+    return [];
+  }
+}
+
 export function isBatchVisible(
   batch: { institute_name: string | null; exam: string | null },
   cat: Catalog | null,

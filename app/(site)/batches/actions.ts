@@ -10,7 +10,7 @@ const schema = z.object({
   phone: z.string().min(6, "Please enter a valid phone number"),
   email: z.string().email("Enter a valid email").optional().or(z.literal("")),
   message: z.string().optional(),
-  batch_id: z.string().uuid().optional().or(z.literal("")),
+  exam: z.string().optional(),
 });
 
 export async function submitQuery(raw: unknown) {
@@ -18,9 +18,9 @@ export async function submitQuery(raw: unknown) {
   if (!parsed.success) {
     return { ok: false as const, error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
-  const { name, phone, email, message, batch_id } = parsed.data;
+  const { name, phone, email, message, exam } = parsed.data;
   const supabase = await createClient();
-  // Attach the enquiry to the signed-in user (if any) so they can track it.
+  // Attach the message to the signed-in user (if any) so they can track it.
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -29,7 +29,7 @@ export async function submitQuery(raw: unknown) {
     phone,
     email: email || null,
     message: message || null,
-    batch_id: batch_id || null,
+    exam: exam || null,
     user_id: user?.id ?? null,
   });
   if (error) return { ok: false as const, error: error.message };

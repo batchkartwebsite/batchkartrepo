@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCatalog, isBatchVisible } from "@/lib/server/catalog";
 import { EnquireWizard, type BatchOption } from "./enquire-wizard";
@@ -11,8 +12,15 @@ function formatFee(fee: number | null): string {
   return fee != null ? `₹${fee.toLocaleString("en-IN")}` : "On request";
 }
 
-export default async function EnquirePage() {
+export default async function EnquirePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const supabase = await createClient();
+  const sp = await searchParams;
+  const batchParam = Array.isArray(sp.batch) ? sp.batch[0] : sp.batch;
+  const examParam = Array.isArray(sp.exam) ? sp.exam[0] : sp.exam;
 
   let userId: string | null = null;
   let prefill: { name: string; phone: string; email: string } | null = null;
@@ -44,7 +52,7 @@ export default async function EnquirePage() {
       supabase.from("coaching_cities").select("name, coaching_id"),
       supabase
         .from("batches")
-        .select("id, name, exam, institute_name, fee, discounted_fee, moderation_status, deleted_at")
+        .select("id, name, exam, institute_name, city, fee, discounted_fee, moderation_status, deleted_at")
         .eq("moderation_status", "published")
         .is("deleted_at", null)
         .order("created_at", { ascending: false }),
@@ -69,12 +77,20 @@ export default async function EnquirePage() {
     name: b.name,
     exam: b.exam,
     institute_name: b.institute_name,
+    city: b.city,
     fee: b.fee,
     discounted_fee: b.discounted_fee,
   }));
   const discounted = batchOptions.filter(
     (b) => b.discounted_fee != null && b.fee != null && b.discounted_fee < b.fee,
   );
+
+  // Prefill from ?batch= / ?exam= so arriving from a batch card carries context.
+  const initialBatch = batchParam ? batchOptions.find((b) => b.id === batchParam) : undefined;
+  const initialBatchId = initialBatch?.id;
+  const initialExam = examParam || initialBatch?.exam || undefined;
+  const initialCoaching = initialBatch?.institute_name ?? undefined;
+  const initialCity = initialBatch?.city ?? undefined;
 
   return (
     <div className="mx-auto max-w-[1160px] px-6 py-12 lg:px-[60px]">
@@ -90,11 +106,17 @@ export default async function EnquirePage() {
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[1.6fr_1fr]">
         <EnquireWizard
+          key={`${initialBatchId ?? ""}|${initialExam ?? ""}`}
           exams={(exams ?? []).map((e) => e.name)}
           coaching={coaching}
           batches={batchOptions}
           prefill={prefill}
           isLoggedIn={Boolean(userId)}
+          initialBatchId={initialBatchId}
+          initialExam={initialExam}
+          initialBatchName={initialBatch?.name}
+          initialCoaching={initialCoaching}
+          initialCity={initialCity}
         />
 
         {/* Discounted batches */}
@@ -105,29 +127,37 @@ export default async function EnquirePage() {
             {discounted.length === 0 ? (
               <p className="mt-6 text-sm text-muted-foreground">No active discounts right now.</p>
             ) : (
-              <ul className="mt-5 space-y-3">
-                {discounted.slice(0, 6).map((b) => {
+              <ul className="mt-5 max-h-[65vh] space-y-3 overflow-y-auto pr-1">
+                {discounted.map((b) => {
                   const off = Math.round((1 - (b.discounted_fee as number) / (b.fee as number)) * 100);
                   return (
-                    <li key={b.id} className="rounded-2xl border border-border bg-background p-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-foreground">{b.name}</p>
-                          <p className="truncate text-xs text-muted-foreground">
-                            {b.institute_name ?? "—"}
-                            {b.exam ? ` · ${b.exam}` : ""}
-                          </p>
+                    <li key={b.id}>
+                      <Link
+                        href={`/enquire?batch=${b.id}`}
+                        className="group block rounded-2xl border border-border bg-background p-4 transition-colors hover:border-primary/40"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-foreground">{b.name}</p>
+                            <p className="truncate text-xs text-muted-foreground">
+                              {b.institute_name ?? "—"}
+                              {b.exam ? ` · ${b.exam}` : ""}
+                            </p>
+                          </div>
+                          <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
+                            {off}% off
+                          </span>
                         </div>
-                        <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
-                          {off}% off
+                        <div className="mt-2 flex items-baseline gap-2">
+                          <span className="font-display text-lg font-semibold text-foreground">
+                            {formatFee(b.discounted_fee)}
+                          </span>
+                          <span className="text-sm text-muted-foreground line-through">{formatFee(b.fee)}</span>
+                        </div>
+                        <span className="mt-2 inline-block text-xs font-semibold text-primary opacity-0 transition-opacity group-hover:opacity-100">
+                          Add to enquiry →
                         </span>
-                      </div>
-                      <div className="mt-2 flex items-baseline gap-2">
-                        <span className="font-display text-lg font-semibold text-foreground">
-                          {formatFee(b.discounted_fee)}
-                        </span>
-                        <span className="text-sm text-muted-foreground line-through">{formatFee(b.fee)}</span>
-                      </div>
+                      </Link>
                     </li>
                   );
                 })}

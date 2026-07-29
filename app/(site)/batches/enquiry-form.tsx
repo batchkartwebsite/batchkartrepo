@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { submitQuery } from "./actions";
 
-export function EnquiryForm({ batches }: { batches: { id: string; name: string }[] }) {
+export function EnquiryForm({ exams }: { exams: string[] }) {
   const [pending, startTransition] = useTransition();
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,7 +17,7 @@ export function EnquiryForm({ batches }: { batches: { id: string; name: string }
       phone: String(fd.get("phone") ?? ""),
       email: String(fd.get("email") ?? ""),
       message: String(fd.get("message") ?? ""),
-      batch_id: String(fd.get("batch_id") ?? ""),
+      exam: String(fd.get("exam") ?? ""),
     };
     setError(null);
     startTransition(async () => {
@@ -80,13 +80,13 @@ export function EnquiryForm({ batches }: { batches: { id: string; name: string }
       </label>
       <label className="flex flex-col gap-1">
         <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-          Interested batch <span className="text-slate-400">(optional)</span>
+          Exam <span className="text-slate-400">(optional)</span>
         </span>
-        <select name="batch_id" className={inputClass} defaultValue="">
+        <select name="exam" className={inputClass} defaultValue="">
           <option value="">— Any / not sure —</option>
-          {batches.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.name}
+          {exams.map((e) => (
+            <option key={e} value={e}>
+              {e}
             </option>
           ))}
         </select>

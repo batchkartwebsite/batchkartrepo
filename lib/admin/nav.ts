@@ -6,10 +6,12 @@ export const adminNav: NavGroup[] = [
   {
     label: "Catalog",
     items: [
+      { label: "Exams", href: "/admin/exams" },
+      { label: "Coaching", href: "/admin/coaching" },
       { label: "Batches", href: "/admin/batches" },
       { label: "Discounted", href: "/admin/discounted" },
-      { label: "Coaching", href: "/admin/coaching" },
-      { label: "Exams", href: "/admin/exams" },
+
+
     ],
   },
   {

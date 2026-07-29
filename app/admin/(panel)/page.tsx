@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { getActiveCatalog, isBatchVisible } from "@/lib/server/catalog";
 import { StatCard } from "@/components/admin/stat-card";
 
 const STATUS_STYLE: Record<string, string> = {
@@ -17,42 +18,63 @@ function timeAgo(iso: string): string {
   return `${Math.floor(hr / 24)}d ago`;
 }
 
+function count(res: { count: number | null }): number {
+  return res.count ?? 0;
+}
+
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
+  const head = { count: "exact" as const, head: true };
   const [
     totalBatches,
-    publishedBatches,
-    totalQueries,
-    newQueries,
-    recentQueries,
-    recentBatches,
+    publishedRows,
+    totalEnquiries,
+    newEnquiries,
+    totalContacts,
+    newContacts,
+    totalUsers,
+    recentEnquiries,
+    recentContacts,
+    cat,
   ] = await Promise.all([
-    supabase.from("batches").select("*", { count: "exact", head: true }),
-    supabase.from("batches").select("*", { count: "exact", head: true }).eq("moderation_status", "published"),
-    supabase.from("queries").select("*", { count: "exact", head: true }),
-    supabase.from("queries").select("*", { count: "exact", head: true }).eq("status", "new"),
+    supabase.from("batches").select("*", head),
+    supabase.from("batches").select("institute_name, exam").eq("moderation_status", "published").is("deleted_at", null),
+    supabase.from("enquiries").select("*", head),
+    supabase.from("enquiries").select("*", head).eq("status", "new"),
+    supabase.from("queries").select("*", head),
+    supabase.from("queries").select("*", head).eq("status", "new"),
+    supabase.from("profiles").select("*", head),
+    supabase
+      .from("enquiries")
+      .select("id, name, exam, status, created_at")
+      .order("created_at", { ascending: false })
+      .limit(6),
     supabase
       .from("queries")
-      .select("id, name, phone, status, created_at, batch_id")
+      .select("id, name, phone, status, created_at")
       .order("created_at", { ascending: false })
       .limit(6),
-    supabase
-      .from("batches")
-      .select("id, name, exam, institute_name, moderation_status, created_at")
-      .order("created_at", { ascending: false })
-      .limit(6),
+    getActiveCatalog(),
   ]);
+
+  // "Live" = published AND not hidden by a turned-off coaching/exam (what the public sees).
+  const liveCount = (publishedRows.data ?? []).filter((b) => isBatchVisible(b, cat)).length;
+
+  const kpis = [
+    { label: "Batches", value: count(totalBatches), hint: `${liveCount} live on site`, href: "/admin/batches" },
+    { label: "Enquiries", value: count(totalEnquiries), hint: `${count(newEnquiries)} new`, href: "/admin/enquiries" },
+    { label: "Contacts", value: count(totalContacts), hint: `${count(newContacts)} new`, href: "/admin/contact" },
+    { label: "Users", value: count(totalUsers), hint: "registered", href: "/admin/users" },
+  ];
 
   return (
     <div className="space-y-8 p-6 lg:p-8">
       {/* Header + quick actions */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-            Dashboard
-          </h1>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Dashboard</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Overview of batches and student enquiries.
+            Everything happening across BatchKart.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -63,10 +85,10 @@ export default async function AdminDashboardPage() {
             + New batch
           </Link>
           <Link
-            href="/admin/contact"
+            href="/admin/enquiries"
             className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-900"
           >
-            View contacts
+            View enquiries
           </Link>
           <Link
             href="/"
@@ -78,88 +100,98 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* KPI cards */}
+      {/* KPI cards (clickable) */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Total batches" value={totalBatches.count ?? 0} />
-        <StatCard label="Published" value={publishedBatches.count ?? 0} hint="Live on site" />
-        <StatCard label="Total contacts" value={totalQueries.count ?? 0} />
-        <StatCard label="New contacts" value={newQueries.count ?? 0} hint="Awaiting reply" />
+        {kpis.map((k) => (
+          <Link
+            key={k.label}
+            href={k.href}
+            className="rounded-xl transition-transform hover:-translate-y-0.5"
+          >
+            <StatCard label={k.label} value={k.value} hint={k.hint} />
+          </Link>
+        ))}
       </div>
 
       {/* Recent panels */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Recent enquiries */}
-        <section className="rounded-xl border border-border bg-background dark:bg-slate-950">
-          <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
-            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-              Recent contacts
-            </h2>
-            <Link href="/admin/contact" className="text-xs font-medium text-emerald-600 hover:text-emerald-500 dark:text-emerald-400">
-              View all →
-            </Link>
-          </div>
-          {(recentQueries.data ?? []).length === 0 ? (
-            <p className="px-5 py-8 text-center text-sm text-slate-400">No enquiries yet.</p>
-          ) : (
-            <ul className="divide-y divide-border">
-              {(recentQueries.data ?? []).map((q) => (
-                <li key={q.id} className="flex items-center justify-between gap-3 px-5 py-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-200">{q.name}</p>
-                    <p className="truncate text-xs text-slate-500 dark:text-slate-400">{q.phone}</p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-3">
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${STATUS_STYLE[q.status] ?? STATUS_STYLE.new}`}>
-                      {q.status}
-                    </span>
-                    <time className="text-xs text-slate-400">{timeAgo(q.created_at)}</time>
-                  </div>
-                </li>
-              ))}
-            </ul>
+        <RecentPanel
+          title="Recent enquiries"
+          href="/admin/enquiries"
+          empty="No enquiries yet."
+          items={recentEnquiries.data ?? []}
+          render={(e) => (
+            <>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-200">{e.name}</p>
+                <p className="truncate text-xs text-slate-500 dark:text-slate-400">{e.exam ?? "General"}</p>
+              </div>
+              <div className="flex shrink-0 items-center gap-3">
+                <span className={`rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${STATUS_STYLE[e.status] ?? STATUS_STYLE.new}`}>
+                  {e.status}
+                </span>
+                <time className="text-xs text-slate-400">{timeAgo(e.created_at)}</time>
+              </div>
+            </>
           )}
-        </section>
-
-        {/* Recent batches */}
-        <section className="rounded-xl border border-border bg-background dark:bg-slate-950">
-          <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
-            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Recent batches</h2>
-            <Link href="/admin/batches" className="text-xs font-medium text-emerald-600 hover:text-emerald-500 dark:text-emerald-400">
-              View all →
-            </Link>
-          </div>
-          {(recentBatches.data ?? []).length === 0 ? (
-            <p className="px-5 py-8 text-center text-sm text-slate-400">No batches yet.</p>
-          ) : (
-            <ul className="divide-y divide-border">
-              {(recentBatches.data ?? []).map((b) => (
-                <li key={b.id} className="flex items-center justify-between gap-3 px-5 py-3">
-                  <div className="min-w-0">
-                    <Link
-                      href={`/admin/batches/${b.id}/edit`}
-                      className="truncate text-sm font-medium text-slate-800 hover:text-emerald-600 dark:text-slate-200"
-                    >
-                      {b.name}
-                    </Link>
-                    <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-                      {[b.exam, b.institute_name].filter(Boolean).join(" · ") || "—"}
-                    </p>
-                  </div>
-                  <span
-                    className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${
-                      b.moderation_status === "published"
-                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400"
-                        : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
-                    }`}
-                  >
-                    {b.moderation_status}
-                  </span>
-                </li>
-              ))}
-            </ul>
+        />
+        <RecentPanel
+          title="Recent contacts"
+          href="/admin/contact"
+          empty="No contact messages yet."
+          items={recentContacts.data ?? []}
+          render={(q) => (
+            <>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-200">{q.name}</p>
+                <p className="truncate text-xs text-slate-500 dark:text-slate-400">{q.phone}</p>
+              </div>
+              <div className="flex shrink-0 items-center gap-3">
+                <span className={`rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${STATUS_STYLE[q.status] ?? STATUS_STYLE.new}`}>
+                  {q.status}
+                </span>
+                <time className="text-xs text-slate-400">{timeAgo(q.created_at)}</time>
+              </div>
+            </>
           )}
-        </section>
+        />
       </div>
     </div>
+  );
+}
+
+function RecentPanel<T extends { id: string }>({
+  title,
+  href,
+  empty,
+  items,
+  render,
+}: {
+  title: string;
+  href: string;
+  empty: string;
+  items: T[];
+  render: (item: T) => React.ReactNode;
+}) {
+  return (
+    <section className="rounded-xl border border-border bg-background dark:bg-slate-950">
+      <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
+        <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
+        <Link href={href} className="text-xs font-medium text-emerald-600 hover:text-emerald-500 dark:text-emerald-400">
+          View all →
+        </Link>
+      </div>
+      {items.length === 0 ? (
+        <p className="px-5 py-8 text-center text-sm text-slate-400">{empty}</p>
+      ) : (
+        <ul className="divide-y divide-border">
+          {items.map((item) => (
+            <li key={item.id} className="flex items-center justify-between gap-3 px-5 py-3">
+              {render(item)}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }

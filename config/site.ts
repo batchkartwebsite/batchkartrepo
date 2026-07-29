@@ -11,20 +11,24 @@ export const siteConfig = {
     { label: "Batches", href: "/batches" },
     { label: "Enquire", href: "/enquire" },
     { label: "Exams", href: "/#exams" },
-    { label: "How it works", href: "/#how" },
-    { label: "FAQ", href: "/#faq" },
+    { label: "How it works", href: "/how-it-works" },
+    { label: "FAQ", href: "/faq" },
   ] satisfies NavLink[],
   footer: {
     explore: [
       { label: "Browse batches", href: "/batches" },
+      { label: "Post a requirement", href: "/enquire" },
       { label: "Popular exams", href: "/#exams" },
-      { label: "How it works", href: "/#how" },
-      { label: "Reviews", href: "/#reviews" },
+      { label: "How it works", href: "/how-it-works" },
     ] satisfies NavLink[],
     company: [
       { label: "Why BatchKart", href: "/#why" },
-      { label: "FAQ", href: "/#faq" },
-      { label: "Post a requirement", href: "/enquire" },
+      { label: "FAQ", href: "/faq" },
+      { label: "Contact", href: "/contact" },
+    ] satisfies NavLink[],
+    legal: [
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Terms of Service", href: "/terms" },
     ] satisfies NavLink[],
   },
 } as const;

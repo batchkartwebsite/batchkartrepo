@@ -9,6 +9,7 @@ export type BatchOption = {
   name: string;
   exam: string | null;
   institute_name: string | null;
+  city: string | null;
   fee: number | null;
   discounted_fee: number | null;
 };
@@ -28,23 +29,35 @@ export function EnquireWizard({
   batches,
   prefill,
   isLoggedIn,
+  initialBatchId,
+  initialExam,
+  initialBatchName,
+  initialCoaching,
+  initialCity,
 }: {
   exams: string[];
   coaching: Coaching[];
   batches: BatchOption[];
   prefill: { name: string; phone: string; email: string } | null;
   isLoggedIn: boolean;
+  initialBatchId?: string;
+  initialExam?: string;
+  initialBatchName?: string;
+  initialCoaching?: string | null;
+  initialCity?: string | null;
 }) {
-  const [step, setStep] = useState(0);
+  // Arriving from a batch: exam + coaching + city are already known, so skip
+  // straight to the batches/budget step instead of re-asking.
+  const [step, setStep] = useState(initialBatchId ? 2 : 0);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const [exam, setExam] = useState("");
+  const [exam, setExam] = useState(initialExam ?? "");
   const [classLevel, setClassLevel] = useState("");
-  const [selCoaching, setSelCoaching] = useState<string[]>([]);
-  const [selCities, setSelCities] = useState<string[]>([]);
-  const [selBatches, setSelBatches] = useState<string[]>([]);
+  const [selCoaching, setSelCoaching] = useState<string[]>(initialCoaching ? [initialCoaching] : []);
+  const [selCities, setSelCities] = useState<string[]>(initialCity ? [initialCity] : []);
+  const [selBatches, setSelBatches] = useState<string[]>(initialBatchId ? [initialBatchId] : []);
   const [budget, setBudget] = useState("");
   const [name, setName] = useState(prefill?.name ?? "");
   const [phone, setPhone] = useState(prefill?.phone ?? "");
@@ -152,6 +165,15 @@ export function EnquireWizard({
           </li>
         ))}
       </ol>
+
+      {initialBatchName ? (
+        <div className="mb-6 flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-4 py-2.5 text-sm">
+          <span aria-hidden>🎯</span>
+          <span className="text-foreground">
+            Enquiring about <span className="font-semibold">{initialBatchName}</span> — it&apos;s pre-selected below.
+          </span>
+        </div>
+      ) : null}
 
       {/* Step 1 — Exam + class */}
       {step === 0 ? (

@@ -79,9 +79,6 @@ export function AuthNav() {
         <Link href="/account" className="block px-4 py-2.5 text-sm hover:bg-muted">
           My account
         </Link>
-        <Link href="/account#enquiries" className="block px-4 py-2.5 text-sm hover:bg-muted">
-          My enquiries
-        </Link>
         <button
           type="button"
           onClick={signOut}

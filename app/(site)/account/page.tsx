@@ -15,6 +15,18 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+function StatusPill({ status }: { status: string }) {
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${STATUS_STYLE[status] ?? STATUS_STYLE.new}`}>
+      {status}
+    </span>
+  );
+}
+
+function asList(v: unknown): string[] {
+  return Array.isArray(v) ? (v as string[]) : [];
+}
+
 export default async function AccountPage() {
   const supabase = await createClient();
   const {
@@ -22,20 +34,22 @@ export default async function AccountPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: profile }, { data: queries }, { data: batches }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", user.id).single(),
-    supabase.from("queries").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-    supabase.from("batches").select("id, name"),
-  ]);
+  const [{ data: profile }, { data: enquiries }, { data: messages }, { data: batches }] =
+    await Promise.all([
+      supabase.from("profiles").select("*").eq("id", user.id).single(),
+      supabase.from("enquiries").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+      supabase.from("queries").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+      supabase.from("batches").select("id, name"),
+    ]);
 
-  const rows = queries ?? [];
+  const enq = enquiries ?? [];
+  const msgs = messages ?? [];
   const batchName = new Map((batches ?? []).map((b) => [b.id, b.name]));
   const name = profile?.full_name ?? (user.user_metadata?.full_name as string) ?? user.email ?? "there";
   const initial = name.trim().charAt(0).toUpperCase();
-  const counts = {
-    total: rows.length,
-    open: rows.filter((r) => r.status !== "closed").length,
-  };
+
+  const openCount =
+    enq.filter((e) => e.status !== "closed").length + msgs.filter((m) => m.status !== "closed").length;
 
   return (
     <div className="mx-auto max-w-[1000px] px-6 py-14 lg:px-[60px]">
@@ -48,22 +62,24 @@ export default async function AccountPage() {
           <div>
             <h1 className="font-display text-2xl font-semibold tracking-tight">{name}</h1>
             <p className="text-sm text-muted-foreground">{profile?.email ?? user.email}</p>
-            {profile?.phone ? (
-              <p className="text-sm text-muted-foreground">{profile.phone}</p>
-            ) : null}
+            {profile?.phone ? <p className="text-sm text-muted-foreground">{profile.phone}</p> : null}
           </div>
         </div>
         <SignOutButton />
       </div>
 
       {/* Stats */}
-      <div className="mt-6 grid grid-cols-2 gap-4 sm:max-w-md">
+      <div className="mt-6 grid grid-cols-3 gap-4 sm:max-w-lg">
         <div className="rounded-2xl border border-border bg-card p-5">
-          <p className="font-display text-3xl font-semibold">{counts.total}</p>
-          <p className="mt-1 text-sm text-muted-foreground">Total enquiries</p>
+          <p className="font-display text-3xl font-semibold">{enq.length}</p>
+          <p className="mt-1 text-sm text-muted-foreground">Enquiries</p>
         </div>
         <div className="rounded-2xl border border-border bg-card p-5">
-          <p className="font-display text-3xl font-semibold">{counts.open}</p>
+          <p className="font-display text-3xl font-semibold">{msgs.length}</p>
+          <p className="mt-1 text-sm text-muted-foreground">Messages</p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-display text-3xl font-semibold">{openCount}</p>
           <p className="mt-1 text-sm text-muted-foreground">In progress</p>
         </div>
       </div>
@@ -72,44 +88,83 @@ export default async function AccountPage() {
       <section id="enquiries" className="mt-12 scroll-mt-24">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-xl font-semibold tracking-tight">My enquiries</h2>
-          <Link href="/batches" className="text-sm font-semibold text-primary hover:underline">
-            Browse batches →
+          <Link href="/enquire" className="text-sm font-semibold text-primary hover:underline">
+            New enquiry →
           </Link>
         </div>
 
-        {rows.length === 0 ? (
+        {enq.length === 0 ? (
           <div className="mt-6 rounded-3xl border border-dashed border-border bg-card p-10 text-center">
-            <p className="text-muted-foreground">You haven&apos;t sent any enquiries yet.</p>
+            <p className="text-muted-foreground">You haven&apos;t posted a requirement yet.</p>
             <Link
-              href="/batches#enquiry"
+              href="/enquire"
               className="mt-4 inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
             >
-              Send your first enquiry
+              Post a requirement
             </Link>
           </div>
         ) : (
           <ul className="mt-6 space-y-3">
-            {rows.map((q) => (
+            {enq.map((e) => {
+              const batchIds = asList(e.batch_ids);
+              const coaching = asList(e.coaching_choices);
+              return (
+                <li key={e.id} className="rounded-2xl border border-border bg-card p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {e.exam ? (
+                        <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-semibold text-accent-foreground">
+                          {e.exam}
+                        </span>
+                      ) : null}
+                      <StatusPill status={e.status} />
+                    </div>
+                    <time className="shrink-0 text-xs text-muted-foreground">{formatDate(e.created_at)}</time>
+                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {[
+                      e.class_level,
+                      coaching.length ? `${coaching.length} coaching` : null,
+                      batchIds.length ? `${batchIds.length} batch${batchIds.length === 1 ? "" : "es"}` : null,
+                      e.budget != null ? `₹${Number(e.budget).toLocaleString("en-IN")} budget` : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ") || "Requirement submitted"}
+                  </p>
+                  {batchIds.length ? (
+                    <p className="mt-1 truncate text-xs text-muted-foreground">
+                      {batchIds.map((id) => batchName.get(id) ?? "—").join(", ")}
+                    </p>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
+      {/* Messages */}
+      <section id="messages" className="mt-12 scroll-mt-24">
+        <h2 className="font-display text-xl font-semibold tracking-tight">My messages</h2>
+        {msgs.length === 0 ? (
+          <p className="mt-6 rounded-3xl border border-dashed border-border bg-card p-8 text-center text-muted-foreground">
+            No contact messages yet.
+          </p>
+        ) : (
+          <ul className="mt-6 space-y-3">
+            {msgs.map((m) => (
               <li
-                key={q.id}
+                key={m.id}
                 className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="font-semibold text-foreground">
-                      {q.batch_id ? (batchName.get(q.batch_id) ?? "General enquiry") : "General enquiry"}
-                    </p>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${STATUS_STYLE[q.status] ?? STATUS_STYLE.new}`}
-                    >
-                      {q.status}
-                    </span>
+                    <p className="font-semibold text-foreground">{m.exam ?? "General message"}</p>
+                    <StatusPill status={m.status} />
                   </div>
-                  {q.message ? (
-                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{q.message}</p>
-                  ) : null}
+                  {m.message ? <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{m.message}</p> : null}
                 </div>
-                <time className="shrink-0 text-xs text-muted-foreground">{formatDate(q.created_at)}</time>
+                <time className="shrink-0 text-xs text-muted-foreground">{formatDate(m.created_at)}</time>
               </li>
             ))}
           </ul>

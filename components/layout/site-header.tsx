@@ -13,7 +13,7 @@ export function SiteHeader() {
         <div className="mx-auto flex h-10 max-w-[1160px] items-center justify-center gap-2 px-6 text-center text-[13px] font-medium lg:px-[60px]">
           <span className="hidden sm:inline">🎉</span>
           <span className="truncate">
-            10,000+ verified batches across NEET · JEE · UPSC —{" "}
+            Compare verified coaching batches for NEET · JEE · UPSC —{" "}
             <Link href="/batches" className="underline decoration-primary decoration-2 underline-offset-2">
               explore now
             </Link>

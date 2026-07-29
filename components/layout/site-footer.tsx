@@ -33,7 +33,7 @@ export function SiteFooter() {
           </Link>
         </div>
 
-        <div className="grid gap-10 md:grid-cols-[2.2fr_1fr_1fr]">
+        <div className="grid gap-10 md:grid-cols-[2fr_1fr_1fr_1fr]">
           <div>
             <Logo className="text-white" />
             <p className="mt-4 max-w-sm text-sm leading-relaxed">{siteConfig.description}</p>
@@ -46,6 +46,7 @@ export function SiteFooter() {
           </div>
           <FooterCol title="Explore" links={siteConfig.footer.explore} />
           <FooterCol title="Company" links={siteConfig.footer.company} />
+          <FooterCol title="Legal" links={siteConfig.footer.legal} />
         </div>
 
         <div className="mt-12 flex flex-wrap justify-between gap-2 border-t border-white/10 pt-6 text-xs">

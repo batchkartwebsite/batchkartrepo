@@ -31,27 +31,6 @@ const FEATURES = [
   { icon: "⚡", title: "One-tap enquiry", body: "Skip the phone-call maze. Enquire once, we do the rest." },
 ];
 
-const REVIEWS = [
-  {
-    quote:
-      "I compared four NEET batches in ten minutes and found one ₹15k cheaper with better faculty. BatchKart just gets it.",
-    name: "Ananya R.",
-    tag: "NEET aspirant · Kota",
-  },
-  {
-    quote:
-      "As a parent I had no idea where to start for JEE. The comparison made the decision obvious and stress-free.",
-    name: "Suresh M.",
-    tag: "Parent · Hyderabad",
-  },
-  {
-    quote:
-      "Found a Hindi-medium UPSC foundation batch that actually fit my budget. Enquiry got answered the same day.",
-    name: "Pooja K.",
-    tag: "UPSC aspirant · Delhi",
-  },
-];
-
 const FAQS = [
   {
     q: "Is BatchKart free for students?",
@@ -95,8 +74,24 @@ async function getFeaturedBatches() {
   }
 }
 
+// Real, DB-derived counts for the hero — no fabricated numbers.
+async function getStats() {
+  try {
+    const supabase = await createClient();
+    const head = { count: "exact" as const, head: true };
+    const [batches, exams, coaching] = await Promise.all([
+      supabase.from("batches").select("*", head).eq("moderation_status", "published").is("deleted_at", null),
+      supabase.from("exams").select("*", head).eq("is_active", true),
+      supabase.from("coaching_centers").select("*", head).eq("is_active", true),
+    ]);
+    return { batches: batches.count ?? 0, exams: exams.count ?? 0, coaching: coaching.count ?? 0 };
+  } catch {
+    return { batches: 0, exams: 0, coaching: 0 };
+  }
+}
+
 export default async function HomePage() {
-  const featured = await getFeaturedBatches();
+  const [featured, stats] = await Promise.all([getFeaturedBatches(), getStats()]);
 
   return (
     <div className="overflow-x-hidden">
@@ -151,9 +146,9 @@ export default async function HomePage() {
               style={{ animationDelay: "320ms" }}
             >
               {[
-                ["10k+", "Batches listed"],
-                ["25+", "Exams covered"],
-                ["120+", "Cities"],
+                [String(stats.batches), "Batches listed"],
+                [String(stats.exams), "Exams covered"],
+                [String(stats.coaching), "Coaching partners"],
               ].map(([v, l]) => (
                 <div key={l}>
                   <dt className="font-display text-3xl font-semibold text-foreground">{v}</dt>
@@ -348,37 +343,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── Reviews ──────────────────────────────────────────────────────── */}
-      <section id="reviews" className="scroll-mt-24">
-        <div className="mx-auto max-w-[1160px] px-6 py-20 lg:px-[60px]">
-          <div className="max-w-2xl">
-            <p className="text-sm font-semibold uppercase tracking-widest text-primary">Loved by aspirants</p>
-            <h2 className="font-display mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-              Real students, real decisions
-            </h2>
-          </div>
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {REVIEWS.map((r) => (
-              <figure
-                key={r.name}
-                className="flex flex-col rounded-3xl border border-border bg-card p-6"
-              >
-                <span aria-hidden className="text-primary">
-                  ★★★★★
-                </span>
-                <blockquote className="mt-3 flex-1 text-[15px] leading-relaxed text-foreground">
-                  “{r.quote}”
-                </blockquote>
-                <figcaption className="mt-5">
-                  <p className="font-semibold text-foreground">{r.name}</p>
-                  <p className="text-sm text-muted-foreground">{r.tag}</p>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── FAQ ──────────────────────────────────────────────────────────── */}
       <section id="faq" className="scroll-mt-24 border-t border-border bg-muted/40">
         <div className="mx-auto grid max-w-[1160px] gap-10 px-6 py-20 md:grid-cols-[0.9fr_1.1fr] lg:px-[60px]">
@@ -389,10 +353,14 @@ export default async function HomePage() {
             </h2>
             <p className="mt-4 text-muted-foreground">
               Still unsure?{" "}
-              <Link href="/batches#enquiry" className="font-semibold text-primary underline underline-offset-4">
-                Send us an enquiry
+              <Link href="/contact" className="font-semibold text-primary underline underline-offset-4">
+                Contact us
               </Link>{" "}
-              and we&apos;ll help you personally.
+              and we&apos;ll help you personally. Or see the{" "}
+              <Link href="/faq" className="font-semibold text-primary underline underline-offset-4">
+                full FAQ
+              </Link>
+              .
             </p>
           </div>
           <div className="divide-y divide-border rounded-3xl border border-border bg-card px-6">

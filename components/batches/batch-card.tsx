@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { Row } from "@/lib/admin/resource-config";
 import { logoForInstitute } from "@/lib/institutes";
 
@@ -102,15 +103,15 @@ export function BatchCard({ batch }: { batch: BatchRow }) {
             <span className="mt-0.5 block text-xs font-semibold text-primary">{off}% off</span>
           ) : null}
         </div>
-        <a
-          href="/batches#enquiry"
+        <Link
+          href={`/enquire?batch=${b.id}`}
           className="inline-flex items-center gap-1 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-primary"
         >
           Enquire
           <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
             →
           </span>
-        </a>
+        </Link>
       </div>
     </article>
   );
