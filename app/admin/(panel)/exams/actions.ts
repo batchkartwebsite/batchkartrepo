@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/server/require-admin";
+import { failAction } from "@/lib/server/action-error";
 
 const createSchema = z.object({
   name: z.string().min(2, "Enter an exam name"),
@@ -15,10 +16,8 @@ export async function createExam(raw: unknown) {
   const supabase = await createClient();
   const { error } = await supabase.from("exams").insert({ name: p.data.name.trim() });
   if (error) {
-    return {
-      ok: false as const,
-      error: error.code === "23505" ? "That exam already exists." : error.message,
-    };
+    if (error.code === "23505") return { ok: false as const, error: "That exam already exists." };
+    return failAction("exams.create", error, "Couldn't create the exam.");
   }
   return { ok: true as const };
 }
@@ -27,6 +26,6 @@ export async function toggleExam(id: string, isActive: boolean) {
   await requireAdmin();
   const supabase = await createClient();
   const { error } = await supabase.from("exams").update({ is_active: isActive }).eq("id", id);
-  if (error) return { ok: false as const, error: error.message };
+  if (error) return failAction("exams.toggle", error, "Couldn't update the exam.");
   return { ok: true as const };
 }

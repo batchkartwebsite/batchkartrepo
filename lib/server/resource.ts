@@ -2,6 +2,7 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "./require-admin";
 import { writeAuditLog } from "./audit";
+import { failAction } from "./action-error";
 import type { ActionResult } from "./admin-action";
 import type { ResourceConfig, TableName, Row, ListParams } from "@/lib/admin/resource-config";
 
@@ -29,7 +30,10 @@ export async function listResource<T extends TableName>(
   query = query.order(sort.column, { ascending: sort.dir === "asc" });
   query = query.range(from, to);
   const { data, count, error } = await query;
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error(`[resource:${config.table}.list]`, error);
+    throw new Error("Couldn't load records.");
+  }
   return { rows: (data ?? []) as Row<T>[], total: count ?? 0 };
 }
 
@@ -56,7 +60,7 @@ export function createResource<T extends TableName>(config: ResourceConfig<T>) {
       values.published_at = new Date().toISOString();
     }
     const { data, error } = await supabase.from(config.table).insert(values).select().single();
-    if (error) return { ok: false, error: error.message };
+    if (error) return failAction(`${config.table}.create`, error, "Couldn't save the record.");
     await writeAuditLog(supabase, {
       actorId: ctx.userId, action: `${config.table}.create`, entityType: config.table,
       entityId: (data as { id?: string } | null)?.id ?? null, before: null, after: data as Record<string, unknown>,
@@ -74,7 +78,7 @@ export function updateResource<T extends TableName>(config: ResourceConfig<T>) {
     const supabase: any = await createClient();
     const { data: before } = await supabase.from(config.table).select("*").eq("id", id).single();
     const { data, error } = await supabase.from(config.table).update(parsed.data as never).eq("id", id).select().single();
-    if (error) return { ok: false, error: error.message };
+    if (error) return failAction(`${config.table}.update`, error, "Couldn't save the record.");
     await writeAuditLog(supabase, {
       actorId: ctx.userId, action: `${config.table}.update`, entityType: config.table, entityId: id,
       before: (before ?? null) as Record<string, unknown> | null, after: data as Record<string, unknown>,
@@ -90,7 +94,7 @@ export function deleteResource<T extends TableName>(config: ResourceConfig<T>) {
     const supabase: any = await createClient();
     const { data: before } = await supabase.from(config.table).select("*").eq("id", id).single();
     const { error } = await supabase.from(config.table).delete().eq("id", id);
-    if (error) return { ok: false, error: error.message };
+    if (error) return failAction(`${config.table}.delete`, error, "Couldn't delete the record.");
     await writeAuditLog(supabase, {
       actorId: ctx.userId, action: `${config.table}.delete`, entityType: config.table, entityId: id,
       before: (before ?? null) as Record<string, unknown> | null, after: null,

@@ -10,13 +10,16 @@ export const securityHeaders: Record<string, string> = {
 // Static CSP: nonce-based strict-dynamic doesn't work with static/ISR pages because
 // the nonce baked into HTML at build time can't match the per-request header nonce.
 // Next.js App Router injects inline bootstrap/hydration scripts (self.__next_f, the
-// request id, etc.), so 'unsafe-inline' is required for scripts or the app never
-// hydrates and every form falls back to a native submit. Dev additionally needs
-// 'unsafe-eval' for React/Turbopack's refresh + error overlay.
+// request id, etc.) plus next-themes' anti-flicker script, so 'unsafe-inline' is
+// required for scripts or the app never hydrates and every form falls back to a
+// native submit. We deliberately do NOT add a bare `https:` source: all scripts are
+// same-origin (next/font is self-hosted at build, no external analytics), so `https:`
+// only widens the attack surface to "any HTTPS origin can inject a script". Dev
+// additionally needs 'unsafe-eval' for React/Turbopack's refresh + error overlay.
 export function buildCspHeader(isDev = false): string {
   const scriptSrc = isDev
-    ? `script-src 'self' 'unsafe-eval' 'unsafe-inline' https:`
-    : `script-src 'self' 'unsafe-inline' https:`;
+    ? `script-src 'self' 'unsafe-eval' 'unsafe-inline'`
+    : `script-src 'self' 'unsafe-inline'`;
   return [
     `default-src 'self'`,
     scriptSrc,

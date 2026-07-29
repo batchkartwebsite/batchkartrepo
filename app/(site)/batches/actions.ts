@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { failAction } from "@/lib/server/action-error";
 
 // Public enquiry submission. Runs as the anon role; the `queries_public_insert`
 // RLS policy permits the insert. No auth required.
@@ -32,6 +33,6 @@ export async function submitQuery(raw: unknown) {
     exam: exam || null,
     user_id: user?.id ?? null,
   });
-  if (error) return { ok: false as const, error: error.message };
+  if (error) return failAction("queries.insert", error, "We couldn't send your message. Please try again.");
   return { ok: true as const };
 }

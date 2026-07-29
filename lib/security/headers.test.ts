@@ -9,6 +9,14 @@ describe("security headers", () => {
     expect(csp).not.toContain("unsafe-eval");
   });
 
+  it("does not allow scripts from arbitrary HTTPS origins", () => {
+    const csp = buildCspHeader();
+    // script-src must be same-origin only (+ unsafe-inline for hydration); a bare
+    // `https:` source would let any HTTPS host inject a script.
+    expect(csp).toContain("script-src 'self' 'unsafe-inline'");
+    expect(csp).not.toMatch(/script-src[^;]*\bhttps:/);
+  });
+
   it("includes unsafe-eval in dev CSP for React/Turbopack error overlay", () => {
     const csp = buildCspHeader(true);
     expect(csp).toContain("'unsafe-eval'");

@@ -30,7 +30,8 @@ export function adminAction<I, O>(opts: {
       });
       return { ok: true, data: result };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : "Action failed" };
+      console.error(`[action:${opts.action}]`, e);
+      return { ok: false, error: "Action failed" };
     }
   };
 }

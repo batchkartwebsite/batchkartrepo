@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { failAction } from "@/lib/server/action-error";
 
 const schema = z.object({
   name: z.string().min(1, "Please enter your name"),
@@ -42,6 +43,6 @@ export async function submitEnquiry(raw: unknown) {
     scholarship_reason: d.scholarship_reason || null,
     achievements: d.achievements || null,
   });
-  if (error) return { ok: false as const, error: error.message };
+  if (error) return failAction("enquiries.insert", error, "We couldn't submit your enquiry. Please try again.");
   return { ok: true as const };
 }
