@@ -2,11 +2,13 @@ import Link from "next/link";
 import { getActiveExamNames } from "@/lib/server/catalog";
 import { siteConfig } from "@/config/site";
 import { EnquiryForm } from "../batches/enquiry-form";
+import { pageMetadata } from "@/lib/seo/metadata";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Contact",
   description: "Get in touch with the BatchKart team.",
-};
+  path: "/contact",
+});
 
 export default async function ContactPage() {
   const examNames = await getActiveExamNames();

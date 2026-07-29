@@ -1,9 +1,13 @@
 import Link from "next/link";
+import { pageMetadata } from "@/lib/seo/metadata";
+import { JsonLd } from "@/components/seo/json-ld";
+import { faqPageSchema } from "@/lib/seo/structured-data";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "FAQ",
   description: "Answers to common questions about BatchKart, enquiries, accounts and more.",
-};
+  path: "/faq",
+});
 
 const SECTIONS: { heading: string; items: { q: string; a: string }[] }[] = [
   {
@@ -46,6 +50,7 @@ const SECTIONS: { heading: string; items: { q: string; a: string }[] }[] = [
 export default function FaqPage() {
   return (
     <div className="mx-auto max-w-[860px] px-6 py-16 lg:px-[60px]">
+      <JsonLd data={faqPageSchema(SECTIONS.flatMap((s) => s.items))} />
       <header className="max-w-2xl">
         <p className="text-sm font-semibold uppercase tracking-widest text-primary">FAQ</p>
         <h1 className="font-display mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">

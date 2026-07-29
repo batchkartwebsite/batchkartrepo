@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { LegalShell, Section } from "../_legal-shell";
 import { siteConfig } from "@/config/site";
+import { pageMetadata } from "@/lib/seo/metadata";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Privacy Policy",
   description: "How BatchKart collects, uses and protects your information.",
-};
+  path: "/privacy",
+});
 
 export default function PrivacyPage() {
   return (

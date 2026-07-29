@@ -11,10 +11,17 @@ describe("security headers", () => {
 
   it("does not allow scripts from arbitrary HTTPS origins", () => {
     const csp = buildCspHeader();
-    // script-src must be same-origin only (+ unsafe-inline for hydration); a bare
-    // `https:` source would let any HTTPS host inject a script.
+    // script-src is same-origin + unsafe-inline (for hydration) plus named trusted
+    // origins only. A *bare* `https:` scheme source — which would let any HTTPS host
+    // inject a script — must never appear (a scheme source is `https:` not followed
+    // by `//`).
     expect(csp).toContain("script-src 'self' 'unsafe-inline'");
-    expect(csp).not.toMatch(/script-src[^;]*\bhttps:/);
+    expect(csp).not.toMatch(/script-src[^;]*\bhttps:(?!\/\/)/);
+  });
+
+  it("allows Google Tag Manager (GA loader) but nothing broader", () => {
+    const csp = buildCspHeader();
+    expect(csp).toContain("https://www.googletagmanager.com");
   });
 
   it("includes unsafe-eval in dev CSP for React/Turbopack error overlay", () => {

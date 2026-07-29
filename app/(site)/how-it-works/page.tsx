@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { pageMetadata } from "@/lib/seo/metadata";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "How it works",
   description: "How BatchKart helps you discover, compare and enquire about coaching batches.",
-};
+  path: "/how-it-works",
+});
 
 const STEPS = [
   {

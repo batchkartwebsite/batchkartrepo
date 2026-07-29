@@ -4,11 +4,13 @@ import { getActiveCatalog, isBatchVisible, getActiveExamNames } from "@/lib/serv
 import { BatchCard } from "@/components/batches/batch-card";
 import { POPULAR_EXAMS } from "@/lib/exams";
 import { EnquiryForm } from "./enquiry-form";
+import { pageMetadata } from "@/lib/seo/metadata";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Explore batches",
   description: "Browse and compare coaching batches for NEET, JEE, UPSC and more.",
-};
+  path: "/batches",
+});
 
 async function getPublishedBatches(exam?: string) {
   try {

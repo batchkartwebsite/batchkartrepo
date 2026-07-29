@@ -2,11 +2,13 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveCatalog, isBatchVisible } from "@/lib/server/catalog";
 import { EnquireWizard, type BatchOption } from "./enquire-wizard";
+import { pageMetadata } from "@/lib/seo/metadata";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Post a requirement",
   description: "Tell us your exam, budget and preferences — we'll match you to the right batches.",
-};
+  path: "/enquire",
+});
 
 function formatFee(fee: number | null): string {
   return fee != null ? `₹${fee.toLocaleString("en-IN")}` : "On request";

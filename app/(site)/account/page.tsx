@@ -2,8 +2,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "./sign-out-button";
+import { pageMetadata } from "@/lib/seo/metadata";
 
-export const metadata = { title: "My account" };
+export const metadata = pageMetadata({
+  title: "My account",
+  description: "Track your enquiries and messages in one place.",
+  path: "/account",
+  noindex: true,
+});
 
 const STATUS_STYLE: Record<string, string> = {
   new: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400",

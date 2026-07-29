@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { LegalShell, Section } from "../_legal-shell";
 import { siteConfig } from "@/config/site";
+import { pageMetadata } from "@/lib/seo/metadata";
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Terms of Service",
   description: "The terms that govern your use of BatchKart.",
-};
+  path: "/terms",
+});
 
 export default function TermsPage() {
   return (

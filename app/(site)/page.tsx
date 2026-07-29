@@ -5,6 +5,15 @@ import { getActiveCatalog, isBatchVisible } from "@/lib/server/catalog";
 import { BatchCard } from "@/components/batches/batch-card";
 import { INSTITUTES } from "@/lib/institutes";
 import { POPULAR_EXAMS } from "@/lib/exams";
+import { pageMetadata } from "@/lib/seo/metadata";
+import { siteConfig } from "@/config/site";
+
+export const metadata = pageMetadata({
+  title: `${siteConfig.name} — Discover & compare coaching batches`,
+  description: siteConfig.description,
+  path: "/",
+  absoluteTitle: true,
+});
 
 const STEPS = [
   {
