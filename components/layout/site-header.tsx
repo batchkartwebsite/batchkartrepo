@@ -7,22 +7,7 @@ import { siteConfig } from "@/config/site";
 
 export function SiteHeader() {
   return (
-    <>
-      {/* Announcement bar */}
-      <div className="bg-foreground text-background">
-        <div className="mx-auto flex h-10 max-w-[1160px] items-center justify-center gap-2 px-6 text-center text-[13px] font-medium lg:px-[60px]">
-          <span className="hidden sm:inline">🎉</span>
-          <span className="truncate">
-            Compare verified coaching batches for NEET · JEE · UPSC —{" "}
-            <Link href="/batches" className="underline decoration-primary decoration-2 underline-offset-2">
-              explore now
-            </Link>
-          </span>
-        </div>
-      </div>
-
-      {/* Main header */}
-      <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-lg">
+    <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-lg">
         <div className="mx-auto flex h-16 max-w-[1160px] items-center justify-between px-6 lg:px-[60px]">
           <Link href="/" aria-label="BatchKart home" className="shrink-0">
             <Logo />
@@ -42,11 +27,12 @@ export function SiteHeader() {
 
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <AuthNav />
+            <div className="hidden md:block">
+              <AuthNav />
+            </div>
             <MobileNav />
           </div>
         </div>
       </header>
-    </>
   );
 }

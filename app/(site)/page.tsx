@@ -105,7 +105,7 @@ export default async function HomePage() {
               "radial-gradient(55% 45% at 12% 8%, rgba(16,185,129,0.20), transparent 60%), radial-gradient(45% 40% at 92% 0%, rgba(245,158,11,0.14), transparent 60%), radial-gradient(60% 60% at 50% 120%, rgba(16,185,129,0.10), transparent 60%)",
           }}
         />
-        <div className="mx-auto grid max-w-[1160px] items-center gap-12 px-6 py-20 lg:grid-cols-[1.15fr_0.85fr] lg:px-[60px] lg:py-28">
+        <div className="mx-auto grid max-w-[1160px] items-center gap-12 px-6 pb-16 pt-8 lg:grid-cols-[1.15fr_0.85fr] lg:px-[60px] lg:pb-24 lg:pt-12">
           <div>
             <span className="bk-rise inline-flex items-center gap-2 rounded-full border border-primary/20 bg-background/70 px-3.5 py-1.5 text-xs font-semibold text-primary shadow-sm backdrop-blur">
               🎓 India&apos;s coaching batch marketplace
@@ -158,53 +158,95 @@ export default async function HomePage() {
             </dl>
           </div>
 
-          {/* hero visual: floating stacked cards */}
+          {/* hero visual: the product idea — search, compare, save (no brands) */}
           <div className="bk-rise relative hidden lg:block" style={{ animationDelay: "260ms" }}>
-            <div className="animate-float relative mx-auto w-full max-w-sm">
-              <div className="rotate-3 rounded-3xl border border-border bg-card p-6 shadow-2xl shadow-primary/10">
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <span className="grid size-9 place-items-center overflow-hidden rounded-xl border border-border bg-white p-1.5">
-                      <Image
-                        src="/logos/allen.png"
-                        alt="Allen"
-                        width={28}
-                        height={28}
-                        className="size-full object-contain"
-                      />
-                    </span>
-                    <span className="rounded-full bg-accent px-2.5 py-1 text-xs font-semibold text-accent-foreground">
-                      NEET
-                    </span>
+            <div className="relative mx-auto w-full max-w-sm">
+              {/* soft brand glow */}
+              <div
+                aria-hidden
+                className="absolute -inset-6 -z-10 rounded-[3rem] bg-primary/15 blur-3xl"
+              />
+
+              {/* app mockup */}
+              <div className="animate-float rounded-[1.75rem] border border-border bg-card p-5 shadow-2xl shadow-primary/10">
+                {/* mock search bar */}
+                <div className="flex items-center gap-2.5 rounded-full border border-border bg-background px-4 py-2.5">
+                  <svg viewBox="0 0 24 24" fill="none" className="size-4 text-muted-foreground" aria-hidden>
+                    <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
+                    <path d="m20 20-3-3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                  <span className="text-sm text-muted-foreground">Find your batch…</span>
+                  <span className="ml-auto rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground">
+                    Search
                   </span>
-                  <span className="text-xs font-semibold text-primary">10% off</span>
                 </div>
-                <p className="mt-4 font-display text-lg font-semibold">NEET Classroom Program</p>
-                <p className="text-sm text-muted-foreground">Allen Career Institute · Kota</p>
-                <div className="mt-4 flex items-end justify-between border-t border-border pt-4">
-                  <span className="font-display text-2xl font-semibold">₹1,30,000</span>
-                  <span className="rounded-full bg-foreground px-3 py-1.5 text-xs font-semibold text-background">
-                    Enquire →
-                  </span>
+
+                {/* exam category chips */}
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {["NEET", "JEE", "UPSC", "CAT", "GATE"].map((e, i) => (
+                    <span
+                      key={e}
+                      className={
+                        i === 0
+                          ? "rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground"
+                          : "rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
+                      }
+                    >
+                      {e}
+                    </span>
+                  ))}
+                </div>
+
+                <p className="mt-4 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  Comparing 3 batches
+                </p>
+
+                {/* generic result rows */}
+                <div className="mt-2 space-y-2">
+                  {[
+                    { exam: "NEET", mode: "Online", icon: "🩺", d: "3,999", o: "6,500", off: 38 },
+                    { exam: "JEE", mode: "Offline", icon: "⚛️", d: "1,10,000", o: "1,45,000", off: 24 },
+                    { exam: "UPSC", mode: "Hybrid", icon: "🏛️", d: "49,999", o: "65,000", off: 23 },
+                  ].map((r) => (
+                    <div
+                      key={r.exam}
+                      className="flex items-center gap-3 rounded-2xl border border-border bg-background p-2.5"
+                    >
+                      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-base">
+                        {r.icon}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-accent-foreground">
+                            {r.exam}
+                          </span>
+                          <span className="text-[11px] text-muted-foreground">{r.mode}</span>
+                        </div>
+                        <div className="mt-1 flex items-baseline gap-1.5">
+                          <span className="text-sm font-semibold text-foreground">₹{r.d}</span>
+                          <span className="text-[11px] text-muted-foreground line-through">₹{r.o}</span>
+                        </div>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-emerald-600 px-2 py-0.5 text-[11px] font-bold text-white">
+                        -{r.off}%
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div className="absolute -bottom-8 -left-6 w-52 -rotate-6 rounded-2xl border border-border bg-card p-4 shadow-xl">
-                <div className="flex items-center gap-2">
-                  <span className="grid size-7 place-items-center overflow-hidden rounded-lg border border-border bg-white p-1">
-                    <Image
-                      src="/logos/vajiram.png"
-                      alt="Vajiram & Ravi"
-                      width={22}
-                      height={22}
-                      className="size-full object-contain"
-                    />
-                  </span>
-                  <span className="rounded-full bg-accent px-2.5 py-0.5 text-[11px] font-semibold text-accent-foreground">
-                    UPSC
-                  </span>
-                </div>
-                <p className="mt-2 text-sm font-semibold">GS Foundation</p>
-                <p className="text-xs text-muted-foreground">Vajiram &amp; Ravi · Delhi</p>
+
+              {/* floating badges */}
+              <div className="absolute -left-6 top-10 -rotate-6 rounded-2xl border border-border bg-card px-3.5 py-2.5 shadow-xl">
+                <p className="font-display text-lg font-semibold text-foreground">
+                  Save up to 40%
+                </p>
+                <p className="text-[11px] text-muted-foreground">on verified batches</p>
+              </div>
+              <div className="absolute -right-4 -bottom-4 flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-2 shadow-xl">
+                <span className="grid size-5 place-items-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
+                  ✓
+                </span>
+                <span className="text-xs font-semibold text-foreground">Verified &amp; up to date</span>
               </div>
             </div>
           </div>

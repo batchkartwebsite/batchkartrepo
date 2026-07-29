@@ -121,42 +121,59 @@ export default async function EnquirePage({
 
         {/* Discounted batches */}
         <aside className="lg:sticky lg:top-24 lg:self-start">
-          <div className="rounded-3xl border border-border bg-card p-6">
-            <h2 className="font-display text-lg font-semibold">🔥 Discounted batches</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Limited-time offers you can enquire about.</p>
+          <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+            {/* Header */}
+            <div className="flex items-center justify-between gap-2 border-b border-border px-5 py-4">
+              <div className="flex items-center gap-2">
+                <span aria-hidden className="text-base">🔥</span>
+                <h2 className="font-display text-base font-semibold">Discounted batches</h2>
+              </div>
+              {discounted.length > 0 ? (
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
+                  {discounted.length}
+                </span>
+              ) : null}
+            </div>
+
             {discounted.length === 0 ? (
-              <p className="mt-6 text-sm text-muted-foreground">No active discounts right now.</p>
+              <div className="px-5 py-12 text-center">
+                <p className="text-3xl">🎯</p>
+                <p className="mt-2 text-sm text-muted-foreground">No active discounts right now.</p>
+              </div>
             ) : (
-              <ul className="mt-5 max-h-[65vh] space-y-3 overflow-y-auto pr-1">
+              <ul className="bk-scroll max-h-[400px] space-y-2.5 overflow-y-auto p-3 lg:max-h-[calc(100vh-13rem)]">
                 {discounted.map((b) => {
                   const off = Math.round((1 - (b.discounted_fee as number) / (b.fee as number)) * 100);
                   return (
                     <li key={b.id}>
                       <Link
                         href={`/enquire?batch=${b.id}`}
-                        className="group block rounded-2xl border border-border bg-background p-4 transition-colors hover:border-primary/40"
+                        className="group block rounded-2xl border border-border bg-background p-4 transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
+                          <div className="min-w-0 pr-1">
                             <p className="truncate text-sm font-semibold text-foreground">{b.name}</p>
                             <p className="truncate text-xs text-muted-foreground">
                               {b.institute_name ?? "—"}
                               {b.exam ? ` · ${b.exam}` : ""}
                             </p>
                           </div>
-                          <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
-                            {off}% off
+                          <span className="shrink-0 rounded-full bg-emerald-600 px-2 py-0.5 text-xs font-bold text-white">
+                            -{off}%
                           </span>
                         </div>
-                        <div className="mt-2 flex items-baseline gap-2">
-                          <span className="font-display text-lg font-semibold text-foreground">
-                            {formatFee(b.discounted_fee)}
+                        <div className="mt-3 flex items-center justify-between gap-2">
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="font-display text-lg font-semibold text-foreground">
+                              {formatFee(b.discounted_fee)}
+                            </span>
+                            <span className="text-xs text-muted-foreground line-through">{formatFee(b.fee)}</span>
+                          </div>
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary">
+                            Add
+                            <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
                           </span>
-                          <span className="text-sm text-muted-foreground line-through">{formatFee(b.fee)}</span>
                         </div>
-                        <span className="mt-2 inline-block text-xs font-semibold text-primary opacity-0 transition-opacity group-hover:opacity-100">
-                          Add to enquiry →
-                        </span>
                       </Link>
                     </li>
                   );
