@@ -65,12 +65,23 @@ export function EnquiryForm({ exams }: { exams: string[] }) {
         </p>
       ) : null}
       <label className="flex flex-col gap-1">
-        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Name</span>
+        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+          Name <span aria-hidden className="text-rose-500">*</span>
+        </span>
         <input name="name" required className={inputClass} placeholder="Your name" />
       </label>
       <label className="flex flex-col gap-1">
-        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Phone</span>
-        <input name="phone" required className={inputClass} placeholder="10-digit mobile" />
+        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+          Mobile <span aria-hidden className="text-rose-500">*</span>
+        </span>
+        <input
+          name="phone"
+          type="tel"
+          required
+          inputMode="numeric"
+          className={inputClass}
+          placeholder="10-digit mobile"
+        />
       </label>
       <label className="flex flex-col gap-1">
         <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -83,7 +94,7 @@ export function EnquiryForm({ exams }: { exams: string[] }) {
           Exam <span className="text-slate-400">(optional)</span>
         </span>
         <select name="exam" className={inputClass} defaultValue="">
-          <option value="">— Any / not sure —</option>
+          <option value="">Any / not sure</option>
           {exams.map((e) => (
             <option key={e} value={e}>
               {e}

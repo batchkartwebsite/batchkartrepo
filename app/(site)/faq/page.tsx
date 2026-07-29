@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import { pageMetadata } from "@/lib/seo/metadata";
 import { JsonLd } from "@/components/seo/json-ld";
 import { faqPageSchema } from "@/lib/seo/structured-data";
@@ -78,7 +79,7 @@ export default function FaqPage() {
                       aria-hidden
                       className="grid size-6 shrink-0 place-items-center rounded-full border border-border text-muted-foreground transition-transform group-open:rotate-45"
                     >
-                      +
+                      <Plus className="size-3.5" />
                     </span>
                   </summary>
                   <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{item.a}</p>

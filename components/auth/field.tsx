@@ -11,7 +11,10 @@ export function AuthField({
   return (
     <label className="block space-y-1.5">
       <span className="flex items-center justify-between text-sm font-medium text-foreground">
-        {label}
+        <span>
+          {label}
+          {props.required ? <span aria-hidden className="text-rose-500"> *</span> : null}
+        </span>
         {hint ? <span className="text-xs font-normal text-muted-foreground">{hint}</span> : null}
       </span>
       <input

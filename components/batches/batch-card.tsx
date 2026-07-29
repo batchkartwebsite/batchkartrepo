@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { MapPin, User, Calendar, Award } from "lucide-react";
 import type { Row } from "@/lib/admin/resource-config";
 import { logoForInstitute } from "@/lib/institutes";
 
@@ -78,10 +79,10 @@ export function BatchCard({ batch }: { batch: BatchRow }) {
 
       {/* meta chips */}
       <div className="mt-4 flex flex-wrap gap-1.5">
-        {b.city ? <Chip>📍 {b.city}</Chip> : null}
-        {b.teacher ? <Chip>👨‍🏫 {b.teacher}</Chip> : null}
-        {b.duration_months ? <Chip>🗓 {b.duration_months} mo</Chip> : null}
-        {b.scholarship_available ? <Chip>🎓 Scholarship</Chip> : null}
+        {b.city ? <Chip><MapPin className="size-3.5" /> {b.city}</Chip> : null}
+        {b.teacher ? <Chip><User className="size-3.5" /> {b.teacher}</Chip> : null}
+        {b.duration_months ? <Chip><Calendar className="size-3.5" /> {b.duration_months} mo</Chip> : null}
+        {b.scholarship_available ? <Chip><Award className="size-3.5" /> Scholarship</Chip> : null}
       </div>
 
       {/* footer: price + cta */}
@@ -119,7 +120,7 @@ export function BatchCard({ batch }: { batch: BatchRow }) {
 
 function Chip({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+    <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
       {children}
     </span>
   );

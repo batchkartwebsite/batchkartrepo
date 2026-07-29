@@ -91,13 +91,14 @@ export default async function BatchesPage({
                   key={e.name}
                   href={`/batches?exam=${encodeURIComponent(e.name)}`}
                   className={[
-                    "rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
+                    "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
                     active
                       ? "bg-primary text-primary-foreground"
                       : "border border-border bg-background text-foreground hover:bg-muted",
                   ].join(" ")}
                 >
-                  {e.emoji} {e.name}
+                  <e.Icon className="size-3.5" />
+                  {e.name}
                 </Link>
               );
             })}

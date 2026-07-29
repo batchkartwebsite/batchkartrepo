@@ -1,8 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
+import {
+  GraduationCap, BadgeCheck, IndianRupee, Compass, Zap, Check, Plus,
+  Stethoscope, Atom, Landmark,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getActiveCatalog, isBatchVisible } from "@/lib/server/catalog";
+import { getActiveCatalog, isBatchVisible, getActiveExamNames } from "@/lib/server/catalog";
 import { BatchCard } from "@/components/batches/batch-card";
+import { EnquiryForm } from "./batches/enquiry-form";
 import { INSTITUTES } from "@/lib/institutes";
 import { POPULAR_EXAMS } from "@/lib/exams";
 import { pageMetadata } from "@/lib/seo/metadata";
@@ -19,7 +24,7 @@ const STEPS = [
   {
     n: "01",
     title: "Discover",
-    body: "Browse verified batches across every major exam, city and budget — all in one place.",
+    body: "Browse verified batches across every major exam, city and budget, all in one place.",
   },
   {
     n: "02",
@@ -34,16 +39,16 @@ const STEPS = [
 ];
 
 const FEATURES = [
-  { icon: "✅", title: "Verified institutes", body: "Every listing is checked — you only see real, active batches." },
-  { icon: "💸", title: "Honest fees", body: "Transparent pricing with discounts surfaced up front." },
-  { icon: "🧭", title: "Every exam", body: "NEET, JEE, UPSC, CAT, GATE, SSC and more — one platform." },
-  { icon: "⚡", title: "One-tap enquiry", body: "Skip the phone-call maze. Enquire once, we do the rest." },
+  { Icon: BadgeCheck, title: "Verified institutes", body: "Every listing is checked, so you only see real, active batches." },
+  { Icon: IndianRupee, title: "Honest fees", body: "Transparent pricing with discounts surfaced up front." },
+  { Icon: Compass, title: "Every exam", body: "NEET, JEE, UPSC, CAT, GATE, SSC and more, all on one platform." },
+  { Icon: Zap, title: "One-tap enquiry", body: "Skip the phone-call maze. Enquire once, we do the rest." },
 ];
 
 const FAQS = [
   {
     q: "Is BatchKart free for students?",
-    a: "Yes — browsing, comparing and enquiring are completely free. We never charge students.",
+    a: "Yes, browsing, comparing and enquiring are completely free. We never charge students.",
   },
   {
     q: "How do you verify batches?",
@@ -55,7 +60,7 @@ const FAQS = [
   },
   {
     q: "Which exams are covered?",
-    a: "NEET, JEE, UPSC, CAT, GATE, SSC, CLAT, Banking and more — with new categories added regularly.",
+    a: "NEET, JEE, UPSC, CAT, GATE, SSC, CLAT, Banking and more, with new categories added regularly.",
   },
 ];
 
@@ -100,7 +105,11 @@ async function getStats() {
 }
 
 export default async function HomePage() {
-  const [featured, stats] = await Promise.all([getFeaturedBatches(), getStats()]);
+  const [featured, stats, examNames] = await Promise.all([
+    getFeaturedBatches(),
+    getStats(),
+    getActiveExamNames(),
+  ]);
 
   return (
     <div className="overflow-x-hidden">
@@ -117,7 +126,7 @@ export default async function HomePage() {
         <div className="mx-auto grid max-w-[1160px] items-center gap-12 px-6 pb-16 pt-8 lg:grid-cols-[1.15fr_0.85fr] lg:px-[60px] lg:pb-24 lg:pt-12">
           <div>
             <span className="bk-rise inline-flex items-center gap-2 rounded-full border border-primary/20 bg-background/70 px-3.5 py-1.5 text-xs font-semibold text-primary shadow-sm backdrop-blur">
-              🎓 India&apos;s coaching batch marketplace
+              <GraduationCap className="size-3.5" /> India&apos;s coaching batch marketplace
             </span>
             <h1
               className="bk-rise font-display mt-6 text-5xl font-semibold leading-[1.02] tracking-tight text-foreground sm:text-6xl lg:text-[4.4rem]"
@@ -131,7 +140,7 @@ export default async function HomePage() {
               className="bk-rise mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground"
               style={{ animationDelay: "160ms" }}
             >
-              Compare coaching batches for NEET, JEE, UPSC and more across India — verified
+              Compare coaching batches for NEET, JEE, UPSC and more across India. Verified
               institutes, honest fees, and exclusive discounts. One enquiry, zero guesswork.
             </p>
             <div className="bk-rise mt-8 flex flex-wrap gap-3" style={{ animationDelay: "240ms" }}>
@@ -213,16 +222,16 @@ export default async function HomePage() {
                 {/* generic result rows */}
                 <div className="mt-2 space-y-2">
                   {[
-                    { exam: "NEET", mode: "Online", icon: "🩺", d: "3,999", o: "6,500", off: 38 },
-                    { exam: "JEE", mode: "Offline", icon: "⚛️", d: "1,10,000", o: "1,45,000", off: 24 },
-                    { exam: "UPSC", mode: "Hybrid", icon: "🏛️", d: "49,999", o: "65,000", off: 23 },
+                    { exam: "NEET", mode: "Online", Icon: Stethoscope, d: "3,999", o: "6,500", off: 38 },
+                    { exam: "JEE", mode: "Offline", Icon: Atom, d: "1,10,000", o: "1,45,000", off: 24 },
+                    { exam: "UPSC", mode: "Hybrid", Icon: Landmark, d: "49,999", o: "65,000", off: 23 },
                   ].map((r) => (
                     <div
                       key={r.exam}
                       className="flex items-center gap-3 rounded-2xl border border-border bg-background p-2.5"
                     >
-                      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-base">
-                        {r.icon}
+                      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                        <r.Icon className="size-4" />
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
@@ -252,8 +261,8 @@ export default async function HomePage() {
                 <p className="text-[11px] text-muted-foreground">on verified batches</p>
               </div>
               <div className="absolute -right-4 -bottom-4 flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-2 shadow-xl">
-                <span className="grid size-5 place-items-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
-                  ✓
+                <span className="grid size-5 place-items-center rounded-full bg-primary text-primary-foreground">
+                  <Check className="size-3" strokeWidth={3} />
                 </span>
                 <span className="text-xs font-semibold text-foreground">Verified &amp; up to date</span>
               </div>
@@ -336,8 +345,8 @@ export default async function HomePage() {
                 href={`/batches?exam=${encodeURIComponent(e.name)}`}
                 className="group rounded-2xl border border-border bg-card p-5 transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg"
               >
-                <span className="grid size-12 place-items-center rounded-2xl bg-primary/10 text-2xl">
-                  {e.emoji}
+                <span className="grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary">
+                  <e.Icon className="size-6" />
                 </span>
                 <p className="font-display mt-4 text-lg font-semibold text-foreground">{e.name}</p>
                 <p className="text-sm text-muted-foreground">{e.blurb}</p>
@@ -385,7 +394,9 @@ export default async function HomePage() {
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {FEATURES.map((f) => (
               <div key={f.title} className="rounded-2xl border border-border bg-card p-6">
-                <span className="text-3xl">{f.icon}</span>
+                <span className="grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary">
+                  <f.Icon className="size-6" />
+                </span>
                 <h3 className="font-display mt-4 text-lg font-semibold text-foreground">{f.title}</h3>
                 <p className="mt-1.5 text-sm text-muted-foreground">{f.body}</p>
               </div>
@@ -423,7 +434,7 @@ export default async function HomePage() {
                     aria-hidden
                     className="grid size-6 shrink-0 place-items-center rounded-full border border-border text-muted-foreground transition-transform group-open:rotate-45"
                   >
-                    +
+                    <Plus className="size-3.5" />
                   </span>
                 </summary>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{f.a}</p>
@@ -443,26 +454,43 @@ export default async function HomePage() {
               "radial-gradient(50% 60% at 20% 0%, rgba(16,185,129,0.25), transparent 60%), radial-gradient(45% 55% at 90% 100%, rgba(245,158,11,0.14), transparent 60%)",
           }}
         />
-        <div className="mx-auto max-w-[1160px] px-6 py-24 text-center lg:px-[60px]">
-          <h2 className="font-display mx-auto max-w-2xl text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl">
-            Your best batch is one search away.
-          </h2>
-          <p className="mx-auto mt-4 max-w-lg text-slate-400">
-            Join thousands of aspirants who found the right coaching without the runaround.
-          </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link
-              href="/batches"
-              className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5"
-            >
-              Explore batches →
-            </Link>
-            <Link
-              href="/enquire"
-              className="inline-flex items-center gap-2 rounded-full border border-white/20 px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-            >
-              Post a requirement
-            </Link>
+        <div className="mx-auto max-w-[1160px] px-6 py-24 lg:px-[60px]">
+          <div className="grid items-center gap-12 lg:grid-cols-2">
+            <div className="text-center lg:text-left">
+              <h2 className="font-display max-w-xl text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl">
+                Your best batch is one search away.
+              </h2>
+              <p className="mt-4 max-w-lg text-slate-400">
+                Join thousands of aspirants who found the right coaching without the runaround.
+              </p>
+              <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
+                <Link
+                  href="/batches"
+                  className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5"
+                >
+                  Explore batches →
+                </Link>
+                <Link
+                  href="/enquire"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/20 px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                >
+                  Post a requirement
+                </Link>
+              </div>
+            </div>
+
+            {/* Quick contact form */}
+            <div className="rounded-3xl border border-white/10 bg-card p-6 shadow-2xl sm:p-8">
+              <h3 className="font-display text-xl font-semibold text-foreground">
+                Have a quick question?
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Drop us a message and we&apos;ll get back to you shortly.
+              </p>
+              <div className="mt-5">
+                <EnquiryForm exams={examNames} />
+              </div>
+            </div>
           </div>
         </div>
       </section>
